@@ -187,8 +187,10 @@
       if (it.k === 'fixed') {
         const r = routes[it.id];
         if (r) { // 改搭備用班次：固定項目換成新的時間，後面的行程跟著重排
-          o.origS = it.s; o.s = r.s; o.e = r.e; o.os = toMin(r.s); o.oe = toMin(r.e); o.dur = o.oe - o.os;
-          if (r.label) o.t = r.label + '（改搭）' + (it.t.indexOf('：') >= 0 ? '：' + it.t.split('：').slice(1).join('：') : '');
+          o.origS = it.s; o.origE = it.e; o.s = r.s; o.e = r.e; o.os = toMin(r.s); o.oe = toMin(r.e); o.dur = o.oe - o.os;
+          { const rest = it.t.indexOf('：') >= 0 ? '：' + it.t.split('：').slice(1).join('：') : '', head = it.t.split('：')[0];
+            if (r.delay) { o.delay = r.delay; o.t = (r.label || head) + '（' + (r.label ? '改搭・' : '') + '誤點 ' + r.delay + ' 分）' + rest; }
+            else if (r.label) o.t = r.label + '（改搭）' + rest; }
           o.alted = true; o.ed = true; info.edited++;
         }
         return o;

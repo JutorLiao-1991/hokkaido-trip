@@ -32,6 +32,7 @@
       if (typeof x.s === 'string' && /^\d\d:\d\d$/.test(x.s)) v.s = x.s;
       if (typeof x.e === 'string' && /^\d\d:\d\d$/.test(x.e)) v.e = x.e;
       if (typeof x.label === 'string') v.label = x.label.slice(0, 40);
+      if (typeof x.delay === 'number' && x.delay > 0 && x.delay <= 300) v.delay = Math.round(x.delay);
       if (x.v === true) v.v = true;
       if (x.del === true) v.del = true;
       o.e[k] = v;

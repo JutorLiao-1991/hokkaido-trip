@@ -16,7 +16,7 @@
 
   const S = {
     data: null, tab: null, choice: {}, ext: { id: null, ext: 0, leaveNow: false },
-    prep: null, prepCtl: null, stations: null, stCtl: null, sim: null, pos: null, watch: null, expanded: {}, rt: {}, flip: {}, justFlip: null, lang: (load('hk.lang') || 'jp'), last: null, timer: null, bound: false,
+    prep: null, prepCtl: null, stations: null, stCtl: null, sim: null, pos: null, watch: null, expanded: {}, rt: {}, wx: null, flip: {}, justFlip: null, lang: (load('hk.lang') || 'jp'), last: null, timer: null, bound: false,
     ux: null, userScrollAt: 0, autoScrolling: false, justOpened: null, slide: '', scrollNow: true, alerted: {}, lastCount: null
   };
 
@@ -56,6 +56,19 @@
     S.prepCtl.edit(ekey('r', day.date, plan, fixedId), { s: alt.s, e: alt.e, label: alt.label || '' });
     if (S.ux) S.ux.play('done');
     toast('已改搭 ' + (alt.label || alt.s) + '，後面的行程已重排');
+  }
+
+  // 這班誤點：出發與抵達都往後推 N 分（若已改搭，就在改搭的班次上再推），後面的行程跟著重排
+  const isTransit = it => it.kind === 'fixed' && /號|号|JX\d|巴士|バス|地鐵|地下鉄|線|Airport|Lilac|班機|航班/.test(it.orig || it.t);
+  function addMin(hhmm, n) { const m = (parseInt(hhmm.slice(0, 2), 10) * 60 + parseInt(hhmm.slice(3), 10) + n + 1440) % 1440; return String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0'); }
+  function setDelay(it, n, day) {
+    day = day || curDay(); const plan = planFor(day);
+    if (!S.prepCtl) { toast('需要先打開行程資料'); return; }
+    const key = ekey('r', day.date, plan, it.id), cur = (S.prepCtl.getEdits() || {})[key];
+    const base = cur && !cur.reset ? { s: cur.delay ? addMin(cur.s, -cur.delay) : cur.s, e: cur.delay ? addMin(cur.e, -cur.delay) : cur.e, label: cur.label || '' } : { s: it.origS || it.s, e: it.origE || it.e, label: '' };
+    S.prepCtl.edit(key, { s: addMin(base.s, n), e: addMin(base.e, n), label: base.label, delay: n });
+    if (S.ux) S.ux.play('alert');
+    toast('已記錄誤點 ' + n + ' 分，後面的行程已重排');
   }
 
   /* ---------- 分析 ---------- */
@@ -191,7 +204,12 @@
       p.push('<div class="d-acts">' + (it.alts || []).map(x => '<button class="chip" data-act="pick-alt" data-v="' + esc(it.id) + '|' + esc(x.s) + '">改搭 ' + esc(x.label) + ' ' + x.s + '</button>').join('') +
         (it.alted ? '<button class="chip" data-act="reset-alt" data-v="' + esc(it.id) + '">↩ 改回原班次 ' + esc(it.origS || '') + '</button>' : '') + '</div>');
     }
-    if (it.kind === 'fixed' && S.prepCtl && !(it.alts && it.alts.length)) p.push('<div class="d-note">🔒 固定班次／預約不能在 App 裡改（避免誤動）。</div>');
+    if (S.prepCtl && isTransit(it)) {
+      p.push('<div class="delay"><div class="delay-h">⏱ 這班誤點了？<small>出發、抵達都往後推，後面行程自動重排</small></div><div class="d-acts">' +
+        [5, 10, 15, 20, 30, 45].map(n => '<button class="chip' + (it.delay === n ? ' on' : '') + '" data-act="delay" data-v="' + esc(it.id) + '|' + n + '">+' + n + ' 分</button>').join('') +
+        (it.delay ? '<button class="chip" data-act="delay-clear" data-v="' + esc(it.id) + '">↩ 沒誤點了</button>' : '') + '</div></div>');
+    }
+    if (it.kind === 'fixed' && S.prepCtl && !(it.alts && it.alts.length) && !isTransit(it)) p.push('<div class="d-note">🔒 固定班次／預約不能在 App 裡改（避免誤動）。</div>');
     return p.join('') || '<div class="d-note">沒有更多資訊</div>';
   }
 
@@ -223,11 +241,22 @@
       const past = isToday && now.getTime() >= it.end.getTime() && it.id !== curId;
       const st = STATUS[it.st] || STATUS.tentative;
       const open = S.expanded[day.date + '/' + it.id];
-      const html = '<li class="row k-' + it.kind + (past ? ' past' : '') + (it.id === curId ? ' now' : '') + '" data-row="' + esc(day.date + '/' + it.id) + '">' +
-        '<div class="tm"><b>' + it.s + '</b><span>' + it.e + '</span></div><div class="dot"></div>' +
+      const rk = day.date + '/' + it.id, isNow = it.id === curId;
+      let just = false;
+      if (past) { S.doneSeen = S.doneSeen || {}; if (S.doneReady && !S.doneSeen[rk]) just = true; S.doneSeen[rk] = 1; }
+      let pct = null, veh = '';
+      if (isNow) {
+        pct = Math.max(0, Math.min(100, Math.round((now - it.start) / Math.max(1, it.end - it.start) * 100)));
+        const jp = jpOf(it);
+        const ic = jp ? (jp.kind === 'bus' ? '🚌' : jp.kind === 'subway' ? '🚇' : '🚆') : /巴士|バス/.test(it.t) ? '🚌' : /JX|航班|班機/.test(it.t) ? '✈️' : isTransit(it) ? '🚆' : it.kind === 'move' ? '🚶' : '';
+        if (ic) veh = '<span class="veh" style="top:' + (8 + pct * 0.84) + '%">' + ic + '</span>';
+      }
+      const html = '<li class="row k-' + it.kind + (past ? ' past' : '') + (just ? ' justdone' : '') + (isNow ? ' now' : '') + '" data-row="' + esc(rk) + '">' +
+        '<div class="tm"><b>' + it.s + '</b><span>' + it.e + '</span></div><div class="dot">' + veh + '</div>' +
         '<div class="body"><div class="ttl' + (jpTitle(it) ? ' flippable' : '') + (S.justFlip === day.date + '/' + it.id ? ' flipin' : '') + '" data-flip="' + (jpTitle(it) ? '1' : '') + '">' + esc(ttlFor(it, day.date + '/' + it.id)) + '</div>' +
         '<div class="meta"><span class="badge ' + st[1] + '">' + st[0] + '</span><span>' + it.dur + ' 分</span><span>' + KIND[it.kind] + '</span>' +
-          (it.alted ? '<span class="badge st-cand">🔁 已改班次</span>' : it.ed ? '<span class="badge st-cand">✎ 自訂</span>' : '') + (it.live ? '<span class="badge st-back">依你的調整</span>' : '') + (it.shifted ? '<span class="badge st-tent">時間已重排</span>' : '') + '</div>' +
+          (it.delay ? '<span class="badge st-late">⏱ 誤點 ' + it.delay + ' 分</span>' : it.alted ? '<span class="badge st-cand">🔁 已改班次</span>' : it.ed ? '<span class="badge st-cand">✎ 自訂</span>' : '') + (it.live ? '<span class="badge st-back">依你的調整</span>' : '') + (it.shifted ? '<span class="badge st-tent">時間已重排</span>' : '') + '</div>' +
+        (pct != null ? '<div class="prog" aria-label="進度 ' + pct + '%"><i style="width:' + pct + '%"></i></div>' : '') +
         (S.prepCtl && it.kind !== 'fixed' ? '<div class="rowacts"><button class="rowbtn" data-act="edit-item" data-v="' + esc(it.id) + '">↔ 換地點</button><button class="rowbtn" data-act="add-after" data-v="' + esc(it.id) + '">＋ 後面加</button></div>' : '') +
         (open ? '<div class="detail' + (S.justOpened === day.date + '/' + it.id ? ' opening' : '') + '">' + detailHTML(it, day) + '</div>' : '') + '</div></li>';
       return (i === nowIdx ? nowLine : '') + html;
@@ -255,6 +284,121 @@
     return out.join('');
   }
 
+
+
+  /* ---------- 日文求助卡 ---------- */
+  const HELP = [
+    ['👶 帶孩子', [
+      ['子ども用の椅子はありますか？', '有兒童椅嗎？'],
+      ['ミルク用のお湯をいただけますか？', '可以給我泡奶用的熱水嗎？'],
+      ['おむつ交換台はどこですか？', '尿布台在哪裡？'],
+      ['授乳室はありますか？', '有哺乳室嗎？'],
+      ['ベビーカーのまま入れますか？', '推車可以直接進去嗎？'],
+      ['エレベーターはどこですか？', '電梯在哪裡？']]],
+    ['🍜 用餐', [
+      ['大人2人と子ども1人です。', '兩個大人、一個小孩。'],
+      ['子ども用の取り皿とスプーンをください。', '請給我兒童用的小盤子和湯匙。'],
+      ['辛くない料理はありますか？', '有不辣的菜嗎？'],
+      ['お会計をお願いします。', '麻煩結帳。']]],
+    ['🚕 交通・住宿', [
+      ['タクシーを呼んでいただけますか？', '可以幫我叫計程車嗎？'],
+      ['この住所までお願いします。', '請載我到這個地址。（再出示地址）'],
+      ['チャイルドシートはありますか？', '有兒童安全座椅嗎？'],
+      ['荷物を預かっていただけますか？', '可以幫我寄放行李嗎？'],
+      ['この電車はこの駅に止まりますか？', '這班車會停這一站嗎？（再指站名）']]],
+    ['🆘 緊急', [
+      ['子どもが熱を出しました。近くの病院を教えてください。', '孩子發燒了，請告訴我附近的醫院。'],
+      ['救急車を呼んでください。', '請幫我叫救護車。'],
+      ['子どもが迷子になりました。助けてください。', '孩子走失了，請幫幫我。'],
+      ['日本語が話せません。台湾から来ました。', '我不會說日文，我從台灣來。']]]
+  ];
+  function openHelp() {
+    let h = '';
+    HELP.forEach((sec, si) => {
+      h += '<div class="hp-sec">' + sec[0] + '</div>';
+      sec[1].forEach((x, i) => { h += '<button class="hp" data-act="phrase" data-v="' + si + '|' + i + '"><b>' + esc(x[0]) + '</b><small>' + esc(x[1]) + '</small></button>'; });
+    });
+    h += '<div class="hp-sec">📞 電話（點了直接撥）</div><div class="hp-tel"><a href="tel:119">🚑 119 救護車・火災</a><a href="tel:110">👮 110 警察</a><a href="tel:05038162787">☎ 訪日旅客熱線 050-3816-2787（中文・24 小時）</a></div>';
+    $('help-list').innerHTML = h;
+    $('help').className = 'sheet open';
+  }
+  function showPhrase(si, i) {
+    const x = HELP[si] && HELP[si][1][i]; if (!x) return;
+    $('phrase').innerHTML = '<div class="pj">' + esc(x[0]) + '</div><div class="pz">' + esc(x[1]) + '</div><div class="px">點一下關閉</div>';
+    $('phrase').className = 'phrase open';
+  }
+
+  /* ---------- 天氣與日落（Open-Meteo，免金鑰；只在出發前 16 天內有預報） ---------- */
+  const WX_CITY = {
+    sapporo: { name: '札幌', lat: 43.0618, lon: 141.3545 },
+    otaru: { name: '小樽', lat: 43.1907, lon: 140.9947 },
+    asahikawa: { name: '旭川', lat: 43.7706, lon: 142.3650 }
+  };
+  function wxCity(day) {
+    const s = (day.title || '') + ' ' + (day.lodging || '');
+    if (/小樽/.test(day.title || '')) return 'otaru';
+    if (/^旭川/.test(day.lodging || '') || /旭川|鷹栖/.test(day.title || '')) return 'asahikawa';
+    return /旭川/.test(s) && !/札幌/.test(day.lodging || '') ? 'asahikawa' : 'sapporo';
+  }
+  function wxIcon(c) {
+    if (c == null) return ['', ''];
+    if (c === 0) return ['☀️', '晴'];
+    if (c <= 2) return ['🌤', '晴時多雲'];
+    if (c === 3) return ['☁️', '陰'];
+    if (c === 45 || c === 48) return ['🌫', '霧'];
+    if (c >= 51 && c <= 57) return ['🌦', '毛毛雨'];
+    if ((c >= 61 && c <= 67) || (c >= 80 && c <= 82)) return ['🌧', '雨'];
+    if (c >= 71 && c <= 77) return ['🌨', c >= 75 ? '大雪' : '下雪'];
+    if (c === 85 || c === 86) return ['🌨', '陣雪'];
+    if (c >= 95) return ['⛈', '雷雨'];
+    return ['🌥', ''];
+  }
+  const isSnow = c => c != null && ((c >= 71 && c <= 77) || c === 85 || c === 86);
+  function wxFor(date, city) { const w = S.wx && S.wx[city]; return w && w.days && w.days[date] || null; }
+  async function wxLoad(force) {
+    if (!S.data) return;
+    S.wx = S.wx || load('hk.wx', {}) || {};
+    const today = E.jstDate(getNow());
+    const last = new Date(Date.parse(today + 'T00:00:00+09:00') + 15 * 864e5).toISOString().slice(0, 10);
+    const days = S.data.days.filter(d => d.date >= today && d.date <= last);
+    if (!days.length) return;
+    const cities = Array.from(new Set(days.map(wxCity)));
+    let changed = false;
+    for (const c of cities) {
+      const w = S.wx[c];
+      if (!force && w && Date.now() - (w.at || 0) < 3 * 3600e3) continue;
+      const C = WX_CITY[c];
+      const url = 'https://api.open-meteo.com/v1/forecast?latitude=' + C.lat + '&longitude=' + C.lon +
+        '&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,snowfall_sum,sunset&timezone=Asia%2FTokyo&forecast_days=16';
+      try {
+        const r = await root.fetch(url, { cache: 'no-store' }); if (!r.ok) continue;
+        const j = await r.json(), d = j.daily || {}, out = {};
+        (d.time || []).forEach((dt, i) => {
+          out[dt] = { c: d.weather_code[i], hi: d.temperature_2m_max[i], lo: d.temperature_2m_min[i],
+            pp: d.precipitation_probability_max ? d.precipitation_probability_max[i] : null,
+            sn: d.snowfall_sum ? d.snowfall_sum[i] : null, ss: d.sunset ? String(d.sunset[i]).slice(11, 16) : null };
+        });
+        S.wx[c] = { at: Date.now(), days: out }; changed = true;
+      } catch (e) { /* 沒網路時沿用舊資料 */ }
+    }
+    if (changed) { save('hk.wx', S.wx); render(); }
+  }
+  function wxLine(day) {
+    const city = wxCity(day), C = WX_CITY[city], w = wxFor(day.date, city);
+    const ss = (w && w.ss) || day.sunset;
+    const sun = ss ? '🌇 日落 ' + ss + (w && w.ss ? '' : (day.sunsetApprox ? '（約）' : '')) : '';
+    if (!w) {
+      const daysTo = Math.round((Date.parse(day.date + 'T00:00:00+09:00') - Date.parse(E.jstDate(getNow()) + 'T00:00:00+09:00')) / 864e5);
+      return '<div class="wx"><span class="wx-c">' + esc(C.name) + '</span>' + (daysTo > 15 ? '<span class="wx-dim">天氣預報約出發前 2 週才有</span>' : '<span class="wx-dim">天氣讀取中或離線</span>') + (sun ? '<span>' + sun + '</span>' : '') + '</div>';
+    }
+    const ic = wxIcon(w.c);
+    return '<div class="wx' + (isSnow(w.c) ? ' wx-snow' : '') + '"><span class="wx-ic">' + ic[0] + '</span><span class="wx-c">' + esc(C.name) + ' ' + esc(ic[1]) + '</span>' +
+      '<span class="wx-t">' + Math.round(w.hi) + '° / ' + Math.round(w.lo) + '°</span>' +
+      (w.pp != null ? '<span>☂ ' + w.pp + '%</span>' : '') + (w.sn ? '<span>❄ ' + w.sn + ' cm</span>' : '') +
+      (sun ? '<span>' + sun + '</span>' : '') + '</div>' +
+      (w.lo <= -10 ? '<div class="wx-tip">很冷：孩子手套、帽子、暖暖包都帶上</div>' : '');
+  }
+
   /* ---------- 主繪製 ---------- */
   function render() {
     if (!S.data) return;
@@ -272,7 +416,7 @@
     const todayDate = E.jstDate(now);
 
     $('tabs').innerHTML = (hasPrep ? '<button class="tab' + (onPrep ? ' on' : '') + '" data-tab="prep">行前<small>準備</small></button>' : '') + S.data.days.map(d =>
-      '<button class="tab' + (d.date === S.tab ? ' on' : '') + (d.date === todayDate ? ' today' : '') + '" data-tab="' + d.date + '">' + md(d.date) + '<small>' + esc(d.dow || '') + '</small></button>').join('');
+      '<button class="tab' + (d.date === S.tab ? ' on' : '') + (d.date === todayDate ? ' today' : '') + '" data-tab="' + d.date + '">' + md(d.date) + '<small>' + esc(d.dow || '') + (wxFor(d.date, wxCity(d)) ? ' ' + wxIcon(wxFor(d.date, wxCity(d)).c)[0] : '') + '</small></button>').join('');
     $('banner').innerHTML = bannerHTML(now);
 
     ['hero', 'plans', 'daybar', 'timeline'].forEach(id => { $(id).style.display = onPrep ? 'none' : ''; });
@@ -285,6 +429,7 @@
     }
 
     const h = heroModel({ a, now, phase });
+    { const sd = S.data.days.find(d => d.date === S.tab) || today; const w = sd && wxFor(sd.date, wxCity(sd)); doc.body.classList.toggle('snowing', !!(w && isSnow(w.c))); }
     $('hero').className = 'hero ' + h.cls;
     $('hero').innerHTML = h.html;
 
@@ -292,7 +437,7 @@
     S.dayInfo = dayEff.info;
     $('plans').innerHTML = plansHTML(day);
     $('daybar').innerHTML = '<div class="daytitle">' + md(day.date) + '（' + esc(day.dow || '') + '）' + esc(day.title) + '</div>' +
-      '<div class="lodging">🛏 ' + esc(day.lodging || '') + '</div>' + (day.note ? '<div class="daynote">' + esc(day.note) + '</div>' : '') + editBannerHTML(day);
+      wxLine(day) + '<div class="lodging">🛏 ' + esc(day.lodging || '') + '</div>' + (day.note ? '<div class="daynote">' + esc(day.note) + '</div>' : '') + editBannerHTML(day);
 
     const dayItems = E.materialize(dayEff.day, planFor(day));
     const dayCtx = (S.last.today && S.last.today.date === day.date) ? { a } : { a: null };
@@ -315,8 +460,14 @@
       const key = E.jstDate(now) + '/' + a.F.id;
       if (!S.alerted[key]) { S.alerted[key] = true; if (UX) UX.play('alert'); toast('距「' + a.F.t + '」還有 ' + a.toFixed + ' 分鐘'); }
     }
+    if (root.Pixel) hero.insertAdjacentHTML('beforeend', root.Pixel.mascot(hero.className));
     const c = hero.querySelector('.count');
-    if (c) { if (S.lastCount != null && S.lastCount !== c.textContent) c.classList.add('tick'); S.lastCount = c.textContent; }
+    if (c) {
+      const txt = c.textContent, prev = S.lastCount;
+      c.innerHTML = Array.from(txt).map((ch, i) => /\d/.test(ch) ? '<span class="dg' + (prev != null && prev.length === txt.length && prev[i] !== ch ? ' flip' : '') + '">' + ch + '</span>' : esc(ch)).join('');
+      if (prev != null && prev.length !== txt.length) c.classList.add('tick');
+      S.lastCount = txt;
+    }
     // 時間軸對齊「現在」：切到當天時對齊；使用者 60 秒沒滑動時也會自動對回去
     if (S.scrollNow || Date.now() - S.userScrollAt > 60000) { const f = S.scrollNow; S.scrollNow = false; alignNow(f); }
     updateGoNow();
@@ -541,12 +692,25 @@
     } else if (a === 'sim-stop') { S.sim = null; drop('hk.sim'); S.tab = null; render(); }
     else if (a === 'open-settings') openSettings();
     else if (a === 'rt-test') rtTest();
+    else if (a === 'pet') { el.classList.remove('jump'); void el.offsetWidth; el.classList.add('jump'); if (S.ux) S.ux.play('tick'); }
+    else if (a === 'help-close') $('help').className = 'sheet';
+    else if (a === 'phrase') { const q = v.split('|'); showPhrase(+q[0], +q[1]); }
+    else if (a === 'phrase-close') $('phrase').className = 'phrase';
     else if (a === 'rt-demo') rtDemo();
     else if (a === 'rt') { const q = v.split('|'); rtCheck(q[0], q[1], q[2]); }
     else if (a === 'take-alt' || a === 'pick-alt') {
       const parts = v.split('|'), day = a === 'take-alt' && S.last.today ? S.last.today : curDay(), base = E.getPlan(day, planFor(day)).items.find(x => x.id === parts[0]);
       const alt = base && (base.alts || []).find(x => x.s === parts[1]);
       if (alt) takeAlt(parts[0], alt, day);
+    }
+    else if (a === 'delay' || a === 'delay-clear') {
+      const q = v.split('|'), day = curDay(), it = E.materialize(eff(day).day, planFor(day)).find(x => x.id === q[0]);
+      if (!it) return;
+      if (a === 'delay') setDelay(it, parseInt(q[1], 10), day);
+      else { const key = ekey('r', day.date, planFor(day), it.id), cur = (S.prepCtl.getEdits() || {})[key];
+        if (cur && cur.label) S.prepCtl.edit(key, { s: addMin(cur.s, -cur.delay), e: addMin(cur.e, -cur.delay), label: cur.label });
+        else S.prepCtl.edit(key, { reset: true });
+        toast('已取消誤點'); }
     }
     else if (a === 'reset-alt') { const day = curDay(); S.prepCtl.edit(ekey('r', day.date, planFor(day), v), { reset: true }); toast('已改回原班次'); }
     else if (a === 'guide') { if (S.stCtl) S.stCtl.openGuide(v); }
@@ -657,8 +821,9 @@
     $('sim-stop').addEventListener('click', () => { S.sim = null; drop('hk.sim'); S.tab = null; closeSettings(); render(); });
     $('import-btn').addEventListener('click', importData);
     $('import-file').addEventListener('change', importFile);
+    $('btn-help').addEventListener('click', openHelp);
     $('import-reset').addEventListener('click', () => { if (!root.confirm('從這支手機移除行程與家庭代碼？之後要重新輸入代碼才看得到。')) return; drop('hk.trip'); drop('hk.data'); drop('hk.sync'); root.location.reload(); });
-    doc.addEventListener('visibilitychange', () => { if (!doc.hidden) { render(); if (S.prepCtl) S.prepCtl.autoSync(); } });
+    doc.addEventListener('visibilitychange', () => { if (!doc.hidden) { render(); wxLoad(); if (S.prepCtl) S.prepCtl.autoSync(); } });
   }
 
   function boot(data) {
@@ -697,7 +862,7 @@
         openItem: (date, id) => { S.tab = date; S.expanded[date + '/' + id] = true; S.justOpened = date + '/' + id; render(); }
       });
     }
-    bind(); render();
+    bind(); render(); S.doneReady = true; wxLoad();
     if (!S.timer) S.timer = root.setInterval(render, 20000);
   }
 
@@ -743,6 +908,7 @@
   }
   function showLock(msg) {
     $('lock').className = 'lock open';
+    if (root.Pixel) doc.querySelector('.lock-ico').innerHTML = root.Pixel.svg('penguin', 5);
     $('lock-msg').textContent = msg || '';
     const s = load('hk.sync', null); if (s && s.code) $('lock-code').value = s.code;
   }

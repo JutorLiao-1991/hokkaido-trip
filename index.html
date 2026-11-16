@@ -22,7 +22,7 @@ padding-bottom:calc(96px + env(safe-area-inset-bottom))}
 header{position:sticky;top:0;z-index:5;background:var(--bg);padding:calc(8px + env(safe-area-inset-top)) 16px 6px;border-bottom:1px solid var(--line)}
 .topbar{display:flex;align-items:center;justify-content:space-between}
 h1{font-size:20px;margin:0}
-.topbtns button{font-size:22px;background:none;border:0;padding:6px 10px;color:var(--fg)}
+.topbtns button{font-size:22px;background:none;border:0;padding:6px 7px;color:var(--fg)}
 .topbtns button.on{color:var(--g);background:rgba(27,127,74,.16);border-radius:12px}
 #tabs{display:flex;gap:6px;margin-top:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
 #tabs::-webkit-scrollbar{display:none}
@@ -53,7 +53,7 @@ main{padding:12px 16px}
 .plan small{display:block;font-weight:400;font-size:12px}
 .plan.on{background:var(--teal);color:#fff}
 .plan.off{background:var(--card);color:var(--muted);border-color:var(--line);opacity:.65}
-.daytitle{font-size:18px;font-weight:700}
+.daytitle{font-size:18px;font-weight:700}.wx{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:center;font-size:14px;margin:4px 0 2px;color:#2b3d44}.wx-ic{font-size:20px}.wx-c{font-weight:700}.wx-t{font-weight:800;font-variant-numeric:tabular-nums}.wx-dim{color:#7a8a90}.wx-tip{font-size:13px;color:#b4472b;margin-bottom:2px}body.glove .wx{font-size:17px}
 .lodging,.daynote{font-size:14px;color:var(--muted);margin-top:2px}
 .daynote{background:var(--card);border-left:4px solid var(--y);padding:8px 10px;border-radius:8px;margin-top:8px}
 #timeline{list-style:none;margin:14px 0 0;padding:0}
@@ -87,7 +87,7 @@ main{padding:12px 16px}
 .d-line,.d-note,.d-alts{margin:4px 0}
 .d-note{color:var(--muted)}
 .d-acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
-.g-mapbox{background:#f7f9fa;border:1px solid #d5e0e4;border-radius:14px;padding:6px;margin:6px 0 10px}.g-svg{display:block;width:100%;height:auto}.filepick{display:flex;align-items:center;justify-content:center;min-height:52px;border-radius:14px;background:var(--teal);color:#fff;font-weight:700;margin:6px 0;cursor:pointer}.rt-box{border-radius:12px;padding:10px 12px;margin:8px 0;background:#eef3f5;font-size:14px}.rt-box ul{margin:4px 0;padding-left:18px}.rt-ok{background:#e6f4ea}.rt-bad{background:#fdecea}.rt-head{font-weight:800;font-size:16px}.rt-time,.rt-note{font-size:12px;color:#53656d}.rt-sub{font-weight:700;margin-top:4px}.d-sign{background:#111;color:#ffb000;border-radius:12px;padding:10px 12px;margin:8px 0;font-size:15px}.d-sign>div{display:flex;gap:10px;align-items:baseline;padding:2px 0}.d-sign small{color:#c8a050;min-width:34px;font-size:12px}.d-sign b{font-size:19px;letter-spacing:.5px}.d-sign .d-sign-h{color:#fff;font-size:13px}.d-sign .d-sign-n{color:#bbb;font-size:12px;display:block}body.glove .d-sign b{font-size:23px}.d-jp{font-size:20px;font-weight:700;margin:6px 0 2px;line-height:1.4}.topbtns #btn-lang{font-weight:700}.rowacts{display:flex;gap:8px;margin-top:8px}.rowbtn{min-height:40px;padding:0 12px;border-radius:99px;border:1px solid var(--teal);color:var(--teal);background:var(--card);font-size:14px}.addstop{display:block;width:100%;margin:12px 0;min-height:52px;border:2px dashed var(--teal);border-radius:14px;color:var(--teal);background:transparent;font-size:16px}body.glove .rowbtn{min-height:60px;font-size:18px}body.glove .addstop{min-height:70px;font-size:20px}
+.g-mapbox{background:#f7f9fa;border:1px solid #d5e0e4;border-radius:14px;padding:6px;margin:6px 0 10px}.g-svg{display:block;width:100%;height:auto}.filepick{display:flex;align-items:center;justify-content:center;min-height:52px;border-radius:14px;background:var(--teal);color:#fff;font-weight:700;margin:6px 0;cursor:pointer}.badge.st-late{background:#fdecea;color:#b4472b;border-color:#f3b8ad}.delay{margin:8px 0;padding:8px 10px;border-radius:12px;background:#fff4e5}.delay-h{font-weight:700}.delay-h small{display:block;font-weight:400;color:#7a6a50;font-size:12px}.chip.on{background:#e5482a;color:#fff;border-color:#e5482a}.rt-box{border-radius:12px;padding:10px 12px;margin:8px 0;background:#eef3f5;font-size:14px}.rt-box ul{margin:4px 0;padding-left:18px}.rt-ok{background:#e6f4ea}.rt-bad{background:#fdecea}.rt-head{font-weight:800;font-size:16px}.rt-time,.rt-note{font-size:12px;color:#53656d}.rt-sub{font-weight:700;margin-top:4px}.d-sign{background:#111;color:#ffb000;border-radius:12px;padding:10px 12px;margin:8px 0;font-size:15px}.d-sign>div{display:flex;gap:10px;align-items:baseline;padding:2px 0}.d-sign small{color:#c8a050;min-width:34px;font-size:12px}.d-sign b{font-size:19px;letter-spacing:.5px}.d-sign .d-sign-h{color:#fff;font-size:13px}.d-sign .d-sign-n{color:#bbb;font-size:12px;display:block}body.glove .d-sign b{font-size:23px}.d-jp{font-size:20px;font-weight:700;margin:6px 0 2px;line-height:1.4}.topbtns #btn-lang{font-weight:700}.hp-sec{margin:14px 0 6px;font-weight:800;color:var(--teal)}.hp{display:block;width:100%;text-align:left;background:var(--card);border:1px solid #d5e0e4;border-radius:14px;padding:10px 12px;margin:6px 0;font-size:17px;color:var(--fg)}.hp b{display:block;font-size:19px}.hp small{color:#53656d;font-size:13px}.hp-tel{display:flex;gap:8px;flex-wrap:wrap}.hp-tel a{flex:1 1 140px;text-align:center;padding:12px;border-radius:14px;background:#fdecea;color:#b4472b;font-weight:800;text-decoration:none}.phrase{position:fixed;inset:0;z-index:40;background:#fffdf5;display:none;flex-direction:column;justify-content:center;align-items:center;padding:24px;text-align:center}.phrase.open{display:flex;animation:sheetIn var(--mid) var(--ease)}.phrase .pj{font-size:clamp(34px,10vw,56px);font-weight:800;line-height:1.35;color:#10222a}.phrase .pz{margin-top:18px;font-size:18px;color:#53656d}.phrase .px{margin-top:28px;font-size:14px;color:#9aa8ad}body.glove .hp{font-size:20px;padding:14px}.rowacts{display:flex;gap:8px;margin-top:8px}.rowbtn{min-height:40px;padding:0 12px;border-radius:99px;border:1px solid var(--teal);color:var(--teal);background:var(--card);font-size:14px}.addstop{display:block;width:100%;margin:12px 0;min-height:52px;border:2px dashed var(--teal);border-radius:14px;color:var(--teal);background:transparent;font-size:16px}body.glove .rowbtn{min-height:60px;font-size:18px}body.glove .addstop{min-height:70px;font-size:20px}
 .chip{display:inline-block;min-height:44px;line-height:44px;padding:0 14px;border-radius:99px;border:1px solid var(--teal);color:var(--teal);background:var(--card);font-size:15px;text-decoration:none}
 #foot{font-size:12px;color:var(--muted);margin:18px 0 0}
 .bar{position:fixed;left:0;right:0;bottom:0;z-index:6;display:grid;grid-template-columns:repeat(4,1fr);gap:8px;
@@ -302,12 +302,52 @@ body.glove #gonow{bottom:calc(186px + env(safe-area-inset-bottom));min-height:60
 body.glove header.compact .hero .count{font-size:36px}
 #toast{position:fixed;left:50%;bottom:calc(100px + env(safe-area-inset-bottom));transform:translateX(-50%);background:#000c;color:#fff;padding:10px 16px;border-radius:99px;font-size:15px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:30;max-width:90%}
 #toast.show{opacity:1}
+
+/* ---- 像素小動物 ---- */
+.px-pet{position:absolute;top:6px;right:8px;background:none;border:0;padding:2px;line-height:0;cursor:pointer;z-index:2}
+.px-pet .px-svg{width:42px;height:42px;image-rendering:pixelated;filter:drop-shadow(0 2px 0 rgba(0,0,0,.18))}
+.px-waddle .px-svg{transform-origin:50% 90%;animation:waddle 1.2s steps(2,jump-none) infinite}
+@keyframes waddle{0%,100%{transform:rotate(-7deg)}50%{transform:rotate(7deg)}}
+.px-run .px-svg{animation:hop .45s ease-in-out infinite}
+@keyframes hop{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+.px-sleep .px-svg{animation:breathe 3s ease-in-out infinite;transform-origin:50% 80%}
+@keyframes breathe{0%,100%{transform:scaleY(1)}50%{transform:scaleY(.92)}}
+.px-z{position:absolute;right:0;top:-2px;font:800 12px/1 ui-monospace,monospace;color:#fff;animation:zz 2.4s ease-in-out infinite}
+.px-z i{font-style:normal;font-size:9px;margin-left:1px}
+@keyframes zz{0%{opacity:0;transform:translate(0,4px)}50%{opacity:1}100%{opacity:0;transform:translate(4px,-6px)}}
+.px-pet.jump .px-svg{animation:petjump .5s var(--ease)}
+@keyframes petjump{0%{transform:none}35%{transform:translateY(-14px) rotate(-10deg)}70%{transform:translateY(0) scale(1.12,.88)}100%{transform:none}}
+header .hero-top{padding-right:46px}
+header.compact .px-pet{top:4px;right:6px}header.compact .px-pet .px-svg{width:30px;height:30px}
+.lock-ico .px-svg{width:72px;height:72px;image-rendering:pixelated;animation:waddle 1.2s steps(2,jump-none) infinite;transform-origin:50% 90%}
+/* ---- 倒數翻牌 ---- */
+.count .dg{display:inline-block;min-width:.62em;text-align:center;padding:0 .04em;margin:0 .02em;border-radius:.12em;background:rgba(0,0,0,.16);box-shadow:inset 0 -.5px 0 rgba(255,255,255,.25)}
+.count .dg.flip{animation:dgflip .45s var(--ease)}
+@keyframes dgflip{0%{transform:perspective(300px) rotateX(-90deg);opacity:.3}60%{transform:perspective(300px) rotateX(12deg)}100%{transform:none;opacity:1}}
+header.compact .count .dg{background:rgba(0,0,0,.12)}
+/* ---- 時間軸：進行中的進度與小車、完成打勾 ---- */
+.veh{position:absolute;left:-5px;z-index:1;font-size:16px;line-height:1;transform:translateY(-50%);transition:top 1s var(--ease);filter:drop-shadow(0 1px 1px rgba(0,0,0,.25))}
+.row.now .dot::before{border-left-style:solid;border-left-color:var(--teal)}
+.prog{height:5px;border-radius:9px;background:var(--line);margin-top:6px;overflow:hidden}
+.prog i{display:block;height:100%;background:var(--teal);border-radius:9px;transition:width 1s var(--ease)}
+.row.past .dot::before{border-left:3px solid var(--teal);opacity:.6}
+.row.past .dot::after{content:"✓";color:#fff;font-size:10px;font-weight:900;line-height:14px;text-align:center;background:var(--teal);border:2px solid var(--teal);width:14px;height:14px;left:0;top:5px}
+.row.justdone .dot::after{animation:donepop .6s var(--ease)}
+@keyframes donepop{0%{transform:scale(0)}60%{transform:scale(1.5)}100%{transform:scale(1)}}
+.row.justdone .body{animation:donefade .8s ease-out}
+@keyframes donefade{from{background:#e6f4ea}}
+/* ---- 下雪的日子：狀態卡飄雪 ---- */
+body.snowing .hero::before{content:"";position:absolute;inset:-40px 0 0 0;pointer-events:none;opacity:.55;
+  background-image:radial-gradient(2px 2px at 20px 30px,#fff 50%,transparent 51%),radial-gradient(3px 3px at 80px 10px,#fff 50%,transparent 51%),radial-gradient(2px 2px at 140px 50px,#fff 50%,transparent 51%),radial-gradient(3px 3px at 200px 20px,#fff 50%,transparent 51%),radial-gradient(2px 2px at 260px 60px,#fff 50%,transparent 51%),radial-gradient(2px 2px at 320px 15px,#fff 50%,transparent 51%);
+  background-size:340px 80px;animation:snowfall 6s linear infinite}
+@keyframes snowfall{from{background-position:0 0}to{background-position:30px 80px}}
+@media (prefers-reduced-motion:reduce){.px-svg,.px-z,.count .dg.flip,.row.justdone .dot::after,.row.justdone .body,body.snowing .hero::before{animation:none!important}.veh,.prog i{transition:none}}
 </style>
 </head>
 <body>
 <header>
   <div class="topbar"><h1>🧭 北海道行程</h1>
-    <div class="topbtns"><button id="btn-lang" aria-label="切換中日站名">日</button><button id="btn-glove" aria-label="手套模式">🧤</button><button id="btn-board" aria-label="班次看板">🚉</button><button id="btn-loc" aria-label="定位">📍</button><button id="btn-settings" aria-label="設定">⚙</button></div></div>
+    <div class="topbtns"><button id="btn-lang" aria-label="切換中日站名">日</button><button id="btn-help" aria-label="日文求助卡">🗣</button><button id="btn-glove" aria-label="手套模式">🧤</button><button id="btn-board" aria-label="班次看板">🚉</button><button id="btn-loc" aria-label="定位">📍</button><button id="btn-settings" aria-label="設定">⚙</button></div></div>
   <nav id="tabs"></nav>
   <div id="banner"></div>
   <section id="hero" class="hero h-gray"><div class="hero-top">載入中…</div></section>
@@ -322,6 +362,13 @@ body.glove header.compact .hero .count{font-size:36px}
 <div id="bar" class="bar"></div>
 <button id="gonow" aria-label="回到現在">⏱ 回到現在</button>
 
+
+<div id="help" class="sheet">
+  <div class="row2" style="justify-content:space-between;align-items:center"><b style="font-size:20px">🗣 日文求助卡</b><button class="big sub" data-act="help-close">關閉</button></div>
+  <div class="d-note">點一句，會用超大字顯示，直接把手機給對方看。</div>
+  <div id="help-list"></div>
+</div>
+<div id="phrase" class="phrase" data-act="phrase-close"></div>
 <div id="settings" class="sheet">
   <div class="row2" style="justify-content:space-between;align-items:center"><b style="font-size:20px">設定與工具</b><button class="big sub" id="set-close">關閉</button></div>
 
@@ -375,6 +422,7 @@ body.glove header.compact .hero .count{font-size:36px}
 <script src="prep.js"></script>
 <script src="station.js"></script>
 <script src="ux.js"></script>
+<script src="pixel.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
