@@ -20,6 +20,7 @@
     ux: null, userScrollAt: 0, autoScrolling: false, justOpened: null, slide: '', scrollNow: true, alerted: {}, lastCount: null
   };
 
+  const APP_VER = 'v24';
   function load(k, d) { try { const v = root.localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } }
   function save(k, v) { try { root.localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* 無痕模式等情況略過 */ } }
   function drop(k) { try { root.localStorage.removeItem(k); } catch (e) { /* ignore */ } }
@@ -691,6 +692,7 @@
       else toast('此瀏覽器不支援複製');
     } else if (a === 'sim-stop') { S.sim = null; drop('hk.sim'); S.tab = null; render(); }
     else if (a === 'open-settings') openSettings();
+    else if (a === 'hard-reset') hardReset();
     else if (a === 'rt-test') rtTest();
     else if (a === 'pet') { el.classList.remove('jump'); void el.offsetWidth; el.classList.add('jump'); if (S.ux) S.ux.play('tick'); }
     else if (a === 'help-close') $('help').className = 'sheet';
@@ -740,9 +742,26 @@
     $('sim-presets').innerHTML = S.data.days.filter(d => d.demo).map(d =>
       '<button class="chip" data-sim="' + d.date + 'T' + d.demo + '">' + md(d.date) + ' ' + d.demo + '</button>').join('');
     $('checklist').innerHTML = ((S.data.trip.checklist) || []).map(c => '<li>' + esc(c) + '</li>').join('');
-    $('data-stamp').textContent = '行程資料版本 ' + (S.data.trip.version || '-') + (familyCode() ? '（雲端，已用家庭代碼上鎖）' : '（這支手機）');
+    $('data-stamp').textContent = '行程資料版本 ' + (S.data.trip.version || '-') + (familyCode() ? '（雲端，已用家庭代碼上鎖）' : '（這支手機）') + '　程式 ' + APP_VER;
     $('settings').className = 'sheet open';
   }
+  // 一鍵重啟：清掉離線快取與舊版程式，重新從網路抓最新版。不動行程、行前清單、家庭代碼、改動紀錄。
+  async function hardReset() {
+    if (!root.confirm('清掉舊版快取並重新載入？\n（行程、行前清單、家庭代碼都會保留，需要網路）')) return;
+    const msg = $('reset-msg'); msg.textContent = '清除中…';
+    try {
+      if (root.navigator.serviceWorker) {
+        const regs = await root.navigator.serviceWorker.getRegistrations();
+        await Promise.all(regs.map(r => r.unregister()));
+      }
+      if (root.caches) { const ks = await root.caches.keys(); await Promise.all(ks.map(k => root.caches.delete(k))); }
+      msg.textContent = '下載最新版…';
+      const files = ['./', 'engine.js', 'prep.js', 'station.js', 'ux.js', 'pixel.js', 'app.js', 'stations.json', 'sw.js'];
+      await Promise.all(files.map(f => root.fetch(f, { cache: 'reload' }).catch(() => null)));
+    } catch (e) { msg.textContent = '清除時遇到問題：' + e.message + '（仍會重新載入）'; }
+    root.location.replace(root.location.pathname + '?r=' + Date.now());
+  }
+
   function closeSettings() { $('settings').className = 'sheet'; }
 
   function startGeo() {
