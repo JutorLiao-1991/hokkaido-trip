@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 470" font-family="-apple-system,'PingFang TC','Noto Sans TC',sans-serif">
+  <rect width="720" height="470" fill="#f7f9fa"/>
+  <text x="20" y="32" font-size="20" font-weight="800" fill="#10222a">JR 小樽站 站內示意（重繪）</text>
+  <text x="20" y="52" font-size="12" fill="#53656d">依站內導覽看板翻拍照重繪，比例與方位為示意，現場以標示為準</text>
+  <!-- 2F platform -->
+  <text x="20" y="86" font-size="16" font-weight="800" fill="#0f6f7c">2F</text>
+  <rect x="60" y="70" width="640" height="34" rx="6" fill="#e3eef0" stroke="#0f6f7c"/>
+  <text x="380" y="92" text-anchor="middle" font-size="14" fill="#10222a">月台（ホーム）— 樓梯／手扶梯上樓</text>
+  <g stroke="#53656d" stroke-width="3"><line x1="60" y1="118" x2="700" y2="118"/><line x1="60" y1="132" x2="700" y2="132"/></g>
+  <!-- 1F -->
+  <text x="20" y="176" font-size="16" font-weight="800" fill="#0f6f7c">1F</text>
+  <rect x="60" y="150" width="640" height="250" rx="8" fill="#fff" stroke="#9fb1b8"/>
+  <!-- left services -->
+  <rect x="70" y="162" width="60" height="120" rx="6" fill="#dbe7f6" stroke="#6a8db5"/>
+  <text x="100" y="190" text-anchor="middle" font-size="12">🚻 廁所</text>
+  <text x="100" y="214" text-anchor="middle" font-size="12">♿ 無障礙</text>
+  <text x="100" y="238" text-anchor="middle" font-size="12">🧳 置物櫃</text>
+  <!-- shops -->
+  <g font-size="12" fill="#10222a">
+    <rect x="140" y="162" width="96" height="58" rx="6" fill="#f3e7d3" stroke="#c9a46a"/><text x="188" y="186" text-anchor="middle">Burger King</text><text x="188" y="204" text-anchor="middle">（餐廳）</text>
+    <rect x="244" y="162" width="96" height="58" rx="6" fill="#f3e7d3" stroke="#c9a46a"/><text x="292" y="186" text-anchor="middle">Café</text><text x="292" y="204" text-anchor="middle">可否茶館</text>
+    <rect x="348" y="162" width="96" height="58" rx="6" fill="#f3e7d3" stroke="#c9a46a"/><text x="396" y="186" text-anchor="middle">小樽</text><text x="396" y="204" text-anchor="middle">Saint Germain</text>
+    <rect x="140" y="232" width="96" height="58" rx="6" fill="#f3e7d3" stroke="#c9a46a"/><text x="188" y="256" text-anchor="middle">駅なかマート</text><text x="188" y="274" text-anchor="middle">Tarche</text>
+    <rect x="244" y="232" width="150" height="58" rx="6" fill="#f3e7d3" stroke="#c9a46a"/><text x="319" y="256" text-anchor="middle">北海道四季彩館</text><text x="319" y="274" text-anchor="middle">小樽店</text>
+  </g>
+  <!-- wicket -->
+  <rect x="456" y="150" width="70" height="140" fill="#fff4cc" stroke="#d4a300"/>
+  <g fill="#d4a300"><rect x="466" y="250" width="8" height="26"/><rect x="482" y="250" width="8" height="26"/><rect x="498" y="250" width="8" height="26"/><rect x="514" y="250" width="8" height="26" opacity="0"/></g>
+  <text x="491" y="190" text-anchor="middle" font-size="14" font-weight="800">改札口</text>
+  <text x="491" y="210" text-anchor="middle" font-size="11" fill="#53656d">Wicket</text>
+  <path d="M491 140 L491 108" stroke="#0f6f7c" stroke-width="3" marker-end="url(#a)"/>
+  <!-- right services -->
+  <g font-size="12" fill="#10222a">
+    <rect x="540" y="162" width="70" height="50" rx="6" fill="#e6f4ea" stroke="#3e9b5b"/><text x="575" y="184" text-anchor="middle">售票機</text><text x="575" y="200" text-anchor="middle" font-size="10">Ticket</text>
+    <rect x="618" y="162" width="74" height="50" rx="6" fill="#e6f4ea" stroke="#3e9b5b"/><text x="655" y="184" text-anchor="middle">綠色窗口</text><text x="655" y="200" text-anchor="middle" font-size="10">みどりの窓口</text>
+    <rect x="618" y="220" width="74" height="40" rx="6" fill="#eef1f3" stroke="#9fb1b8"/><text x="655" y="245" text-anchor="middle">候車室</text>
+    <rect x="540" y="230" width="70" height="60" rx="6" fill="#e3eef0" stroke="#0f6f7c"/><text x="575" y="256" text-anchor="middle">ⓘ 觀光</text><text x="575" y="274" text-anchor="middle">案內所</text>
+  </g>
+  <!-- entrance -->
+  <rect x="300" y="380" width="240" height="20" fill="#0f6f7c"/>
+  <text x="420" y="395" text-anchor="middle" font-size="13" fill="#fff" font-weight="700">站前出口（推測）</text>
+  <path d="M420 404 L420 440" stroke="#0f6f7c" stroke-width="3" marker-end="url(#a)"/>
+  <text x="430" y="456" font-size="13" fill="#10222a">中央通 → 小樽運河（下坡直走）</text>
+  <text x="70" y="330" font-size="12" fill="#53656d">• 快速 Airport 停 4・5 號月台時，6 號車廂前側離改札口最近</text>
+  <text x="70" y="350" font-size="12" fill="#53656d">• 改札到月台沒有標電梯；帶推車請站務員把手扶梯切成協助模式</text>
+  <defs><marker id="a" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#0f6f7c"/></marker></defs>
+</svg>
