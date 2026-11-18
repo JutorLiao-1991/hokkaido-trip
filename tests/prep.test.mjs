@@ -3,7 +3,7 @@ const require = createRequire(import.meta.url);
 const P = require('../prep.js');
 import assert from 'assert';
 let st = P.emptyState();
-st = P.toggle(st,'hotelA',100); assert(P.progress(JSON.parse(await (await import('fs/promises')).readFile(new URL('../private/prep.json', import.meta.url),'utf8')),st).done===1);
+st = P.toggle(st,'hotelA',100); assert(P.progress(JSON.parse(await (await import('fs/promises')).readFile(new URL('../private/v1114/prep.json', import.meta.url),'utf8')),st).done===1);
 st = P.toggle(st,'hotelA',200); assert(!P.sectionItems({id:'book',items:[{id:'hotelA',t:'x'}]},st)[0].v);
 let a=P.addCustom(P.emptyState(),'shop','暖暖包',1000,'aa'); let b=P.addCustom(P.emptyState(),'shop','藥',1001,'bb');
 let m=P.merge(a,b); assert.equal(P.sectionItems({id:'shop',items:[]},m).length,2);

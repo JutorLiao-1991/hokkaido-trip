@@ -1,5 +1,5 @@
 /* 離線快取：先給舊版（秒開），背景再更新；沒網路也能用。改版時把 VER 加 1。 */
-const VER = 'hk-v24';
+const VER = 'hk-v25';
 const CORE = ['./', 'engine.js', 'prep.js', 'station.js', 'ux.js', 'pixel.js', 'app.js', 'stations.json', 'otaru_map.svg', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png'];
 
 self.addEventListener('install', e => {

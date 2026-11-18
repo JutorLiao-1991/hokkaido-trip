@@ -1,5 +1,5 @@
 const E=require('../engine.js');const assert=require('assert');
-const d=require('../private/itinerary.json');
+const d=require('../private/v1114/itinerary.json');
 const day=d.days[1];
 // 無異動：原物件
 let r=E.applyEdits(day,'main',{});assert.strictEqual(r.day,day);

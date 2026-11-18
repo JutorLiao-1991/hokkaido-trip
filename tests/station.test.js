@@ -1,5 +1,5 @@
 const St = require('../station.js'), E = require('../engine.js'), assert = require('assert');
-const ST = Object.assign({}, require('../stations.json'), require('../private/trip-extra.json')), d = require('../private/itinerary.json');
+const ST = Object.assign({}, require('../stations.json'), require('../private/v1114/trip-extra.json')), d = require('../private/v1114/itinerary.json');
 // 每個有導引的班次，起訖站都存在
 Object.entries(ST.trips).forEach(([id, t]) => { if (!t.bus) { assert(ST.stations[t.from], id); assert(ST.stations[t.to], id); } });
 // 行程中的軌道班次都有對應
