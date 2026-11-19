@@ -242,30 +242,40 @@ transform:translateY(100%);transition:transform .32s cubic-bezier(.2,.8,.2,1)}
  .delay{background:#33270f;color:#ffe4bd}.delay-h small{color:#dcc79f}
  .hp{border-color:var(--line)}.hp small,.phrase .pz{color:var(--muted)}
 }
-/* ===== 日文求助卡：竹簡收折 ===== */
-.hp-scroll{margin:10px 0;--bam:#d8b46a;--bam2:#c59a4a;--ink:#3b2a12;--cord:#8b2e1f}
-.hp-head{position:relative;display:flex;align-items:center;gap:8px;width:100%;min-height:56px;padding:10px 14px;border:0;border-radius:10px;color:var(--ink);font-size:18px;font-weight:800;text-align:left;cursor:pointer;
- background:repeating-linear-gradient(90deg,transparent 0 21px,rgba(80,50,10,.28) 21px 23px),linear-gradient(180deg,#e6c98a,var(--bam) 45%,var(--bam2));box-shadow:0 2px 0 #9c7633,0 3px 6px rgba(0,0,0,.18)}
-.hp-head::before,.hp-head::after{content:"";position:absolute;left:0;right:0;height:3px;background:var(--cord);opacity:.85}
-.hp-head::before{top:9px}.hp-head::after{bottom:9px}
-.hp-t{flex:1;position:relative;z-index:1;text-shadow:0 1px 0 rgba(255,240,200,.6)}
-.hp-n{position:relative;z-index:1;font-size:13px;font-weight:600;opacity:.8}
-.hp-today{position:relative;z-index:1;background:var(--cord);color:#fff3d6;font-size:12px;padding:2px 8px;border-radius:99px}
-.hp-arrow{position:relative;z-index:1;display:inline-block;transition:transform var(--mid) var(--ease)}
+/* ===== 日文求助卡：白色捲軸（點開由上往下展開） ===== */
+.hp-scroll{margin:14px 0;--paper:#fffdf7;--paper2:#f3ecdc;--wood:#5a3317;--wood2:#2e1909;--ink:#1f1a12;--mount:#e7dcc4;--cord:#6b3d7a}
+.hp-head{position:relative;display:flex;align-items:center;gap:8px;width:100%;min-height:58px;padding:10px 26px;border:0;border-radius:12px/50%;color:var(--ink);font-size:18px;font-weight:800;text-align:left;cursor:pointer;
+ background:linear-gradient(180deg,#ffffff 0%,var(--paper) 30%,var(--paper2) 72%,#d6ccb5 100%);box-shadow:0 3px 6px rgba(0,0,0,.16),inset 0 -2px 0 rgba(120,100,60,.18)}
+.hp-head::before,.hp-head::after{content:"";position:absolute;top:50%;width:14px;height:78%;transform:translateY(-50%);border-radius:7px;background:linear-gradient(180deg,#8a5a30,var(--wood) 45%,var(--wood2));box-shadow:0 1px 2px rgba(0,0,0,.35)}
+.hp-head::before{left:-5px}.hp-head::after{right:-5px}
+.hp-t{flex:1;font-family:"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP","Noto Serif TC",serif;letter-spacing:.5px}
+.hp-label{display:inline-block;padding:3px 10px;border:1px solid #cdbf9c;background:#fbf7ea;border-radius:2px;box-shadow:inset 0 0 0 2px #fbf7ea,inset 0 0 0 3px #e3d6b5}
+.hp-n{font-size:13px;font-weight:600;color:#6b5f4a}
+.hp-today{background:#b8332a;color:#fff6e6;font-size:12px;padding:2px 8px;border-radius:99px}
+.hp-cord{flex:none;align-self:stretch;margin:-12px 2px -12px 0;width:7px;border-radius:3px;background:linear-gradient(90deg,#4e2a5c,var(--cord),#4e2a5c);box-shadow:0 0 0 1px rgba(0,0,0,.08);transition:opacity .2s}
+.hp-scroll.open .hp-cord,.hp-scroll.anim .hp-cord{opacity:0}
+.hp-arrow{display:inline-block;color:#6b5f4a;transition:transform var(--mid) var(--ease)}
 .hp-scroll.open .hp-arrow{transform:rotate(180deg)}
-.hp-body{display:none;padding:4px 6px 2px;margin:0 8px;border-left:3px solid var(--bam2);border-right:3px solid var(--bam2);border-radius:0 0 10px 10px;perspective:700px}
-.hp-scroll.open .hp-body{display:block}
-.hp-scroll.open .hp{animation:slat .32s var(--ease) both;animation-delay:calc(var(--i,0) * 40ms)}
-@keyframes slat{from{opacity:0;transform:rotateX(-88deg);transform-origin:50% 0}to{opacity:1;transform:none;transform-origin:50% 0}}
-.hp b ruby rt{font-size:.5em;font-weight:500;color:#5f7d86}
+.hp-body{height:0;overflow:hidden;margin:-4px 12px 0;background:var(--mount);padding:0 7px;transition-property:height;transition-timing-function:cubic-bezier(.4,.15,.3,1)}
+.hp-scroll.open .hp-body{height:auto}
+.hp-paper{background:var(--paper);padding:6px 12px 8px;background-image:repeating-linear-gradient(0deg,rgba(150,130,90,.05) 0 1px,transparent 1px 4px),repeating-linear-gradient(90deg,rgba(150,130,90,.035) 0 1px,transparent 1px 7px);box-shadow:inset 0 6px 8px -6px rgba(0,0,0,.25)}
+.hp-roll{display:none;position:relative;height:18px;margin:0 6px;border-radius:9px/50%;background:linear-gradient(180deg,#ffffff,var(--paper) 35%,var(--paper2) 70%,#cfc4aa);box-shadow:0 3px 5px rgba(0,0,0,.22)}
+.hp-roll::before,.hp-roll::after{content:"";position:absolute;top:-2px;width:12px;height:22px;border-radius:6px;background:linear-gradient(180deg,#8a5a30,var(--wood) 45%,var(--wood2))}
+.hp-roll::before{left:-5px}.hp-roll::after{right:-5px}
+.hp-scroll.open .hp-roll,.hp-scroll.anim .hp-roll{display:block}
+.hp-paper .hp{background:transparent;border:0;border-bottom:1px dashed #d9ccae;border-radius:0;margin:0;padding:12px 4px;color:var(--ink)}
+.hp-paper .hp:last-child{border-bottom:0}
+.hp-paper .hp:active{background:rgba(184,51,42,.06)}
+.hp-paper .hp b{font-family:"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif;font-weight:700;line-height:1.9}
+.hp-paper .hp small{color:#6b5f4a}
+.hp b ruby rt{font-size:.5em;font-weight:500;color:#8a5a30;font-family:-apple-system,"Hiragino Sans",sans-serif}
 .phrase .pj ruby rt{font-size:.36em;font-weight:600;color:#6b7f86}
 ruby{ruby-position:over}
-body.glove .hp-head{min-height:70px;font-size:21px}
+body.glove .hp-head{min-height:72px;font-size:21px}
 @media (prefers-color-scheme:dark){
- .hp-scroll{--bam:#8a6a33;--bam2:#6f5326;--ink:#fff1d2;--cord:#c4573f}
- .hp-head{background:repeating-linear-gradient(90deg,transparent 0 21px,rgba(0,0,0,.3) 21px 23px),linear-gradient(180deg,#9c7a3e,var(--bam) 45%,var(--bam2));box-shadow:0 2px 0 #4d3816,0 3px 6px rgba(0,0,0,.4)}
- .hp-t{text-shadow:0 1px 0 rgba(0,0,0,.4)}
- .hp b ruby rt{color:#9fc0c8}
+ .hp-scroll{--paper:#f4eedf;--paper2:#e3d9c2;--mount:#b9a881}
+ .hp-head{box-shadow:0 3px 8px rgba(0,0,0,.5)}
+ .hp-roll{box-shadow:0 3px 8px rgba(0,0,0,.5)}
 }
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 
@@ -397,7 +407,7 @@ body.snowing .hero::before{content:"";position:absolute;inset:-40px 0 0 0;pointe
 
 <div id="help" class="sheet">
   <div class="row2" style="justify-content:space-between;align-items:center"><b style="font-size:20px">🗣 日文求助卡</b><button class="big sub" data-act="help-close">關閉</button></div>
-  <div class="d-note">點竹簡打開分類，再點一句就會用超大字顯示，直接把手機給對方看。漢字上方是讀音。當天會用到的分類會自動打開。</div>
+  <div class="d-note">點捲軸打開分類，再點一句就會用超大字顯示，直接把手機給對方看。漢字上方是讀音。當天會用到的分類會自動打開。</div>
   <div id="help-list"></div>
 </div>
 <div id="phrase" class="phrase" data-act="phrase-close"></div>

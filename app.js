@@ -20,7 +20,7 @@
     ux: null, userScrollAt: 0, autoScrolling: false, justOpened: null, slide: '', scrollNow: true, alerted: {}, lastCount: null
   };
 
-  const APP_VER = 'v27';
+  const APP_VER = 'v28';
   function load(k, d) { try { const v = root.localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } }
   function save(k, v) { try { root.localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* 無痕模式等情況略過 */ } }
   function drop(k) { try { root.localStorage.removeItem(k); } catch (e) { /* ignore */ } }
@@ -447,21 +447,42 @@
     HELP.forEach((sec, si) => {
       const isToday = (sec.days || []).indexOf(today) >= 0;
       h += '<div class="hp-scroll' + (isToday ? ' open' : '') + '"><button class="hp-head" data-act="help-sec" data-v="' + si + '" aria-expanded="' + isToday + '">' +
-        '<span class="hp-t">' + esc(sec.t) + '</span>' + (isToday ? '<span class="hp-today">今天</span>' : '') +
-        '<span class="hp-n">' + sec.p.length + ' 句</span><span class="hp-arrow">▾</span></button><div class="hp-body">';
-      sec.p.forEach((x, i) => { h += '<button class="hp" style="--i:' + i + '" data-act="phrase" data-v="' + si + '|' + i + '"><b>' + rb(x[0]) + '</b><small>' + esc(x[1]) + '</small></button>'; });
-      h += '</div></div>';
+        '<span class="hp-t"><span class="hp-label">' + esc(sec.t) + '</span></span>' + (isToday ? '<span class="hp-today">今天</span>' : '') +
+        '<span class="hp-cord"></span><span class="hp-n">' + sec.p.length + ' 句</span><span class="hp-arrow">▾</span></button><div class="hp-body"><div class="hp-paper">';
+      sec.p.forEach((x, i) => { h += '<button class="hp" data-act="phrase" data-v="' + si + '|' + i + '"><b>' + rb(x[0]) + '</b><small>' + esc(x[1]) + '</small></button>'; });
+      h += '</div></div><div class="hp-roll"></div></div>';
     });
     h += '<div class="hp-sec">📞 電話（點了直接撥）</div><div class="hp-tel"><a href="tel:119">🚑 119 救護車・火災</a><a href="tel:110">👮 110 警察</a><a href="tel:05038162787">☎ 訪日旅客熱線 050-3816-2787（中文・24 小時）</a></div>';
     $('help-list').innerHTML = h;
     $('help').className = 'sheet open';
   }
+  // 捲軸展開／收起：量出內容高度，讓紙由上往下攤開（下方捲棒跟著往下走），收起時反向捲回
   function toggleHelpSec(si) {
     const box = document.querySelectorAll('#help-list .hp-scroll')[si]; if (!box) return;
+    const body = box.querySelector('.hp-body'), head = box.querySelector('.hp-head');
     const open = !box.classList.contains('open');
-    box.classList.toggle('open', open);
-    box.querySelector('.hp-head').setAttribute('aria-expanded', String(open));
-    if (open && S.ux) S.ux.play('tick');
+    head.setAttribute('aria-expanded', String(open));
+    const still = root.matchMedia && root.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (box._t) { root.clearTimeout(box._t); box._t = null; }
+    const done = () => { box.classList.remove('anim'); body.style.height = ''; body.style.transitionDuration = ''; box._t = null; };
+    if (still) { box.classList.toggle('open', open); done(); return; }
+    const full = body.scrollHeight;
+    const ms = Math.round(Math.max(500, Math.min(1400, full * 1.1)));
+    box.classList.add('anim');
+    body.style.transitionDuration = ms + 'ms';
+    if (open) {
+      body.style.height = '0px'; box.classList.add('open'); void body.offsetHeight;
+      body.style.height = body.scrollHeight + 'px';
+      if (S.ux) S.ux.play('tick');
+      const sh = $('help'), top = head.getBoundingClientRect().top;
+      if (sh && (top < 0 || top > 140)) sh.scrollTo({ top: sh.scrollTop + top - 70, behavior: 'smooth' });
+    } else {
+      body.style.height = full + 'px'; void body.offsetHeight;
+      body.style.height = '0px';
+      box._t = root.setTimeout(() => { box.classList.remove('open'); done(); }, ms);
+      return;
+    }
+    box._t = root.setTimeout(done, ms);
   }
   function showPhrase(si, i) {
     const x = HELP[si] && HELP[si].p[i]; if (!x) return;
