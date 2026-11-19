@@ -20,7 +20,7 @@
     ux: null, userScrollAt: 0, autoScrolling: false, justOpened: null, slide: '', scrollNow: true, alerted: {}, lastCount: null
   };
 
-  const APP_VER = 'v30';
+  const APP_VER = 'v31';
   function load(k, d) { try { const v = root.localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } }
   function save(k, v) { try { root.localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* 無痕模式等情況略過 */ } }
   function drop(k) { try { root.localStorage.removeItem(k); } catch (e) { /* ignore */ } }
