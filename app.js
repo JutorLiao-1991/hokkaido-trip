@@ -20,7 +20,7 @@
     ux: null, userScrollAt: 0, autoScrolling: false, justOpened: null, slide: '', scrollNow: true, alerted: {}, lastCount: null
   };
 
-  const APP_VER = 'v28';
+  const APP_VER = 'v29';
   function load(k, d) { try { const v = root.localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } }
   function save(k, v) { try { root.localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* 無痕模式等情況略過 */ } }
   function drop(k) { try { root.localStorage.removeItem(k); } catch (e) { /* ignore */ } }
@@ -440,6 +440,26 @@
     return out + esc(s.slice(last));
   }
   const plainJp = s => String(s).replace(RUBY_RE, '$1');
+  // 發音用「讀音」而不是漢字：{北海道|ほっかいどう} → ほっかいどう，避免語音引擎把漢字讀錯
+  const jpReading = s => String(s).replace(RUBY_RE, '$2').replace(/[「」『』（）()～〜…]/g, ' ');
+  function stopSpeak() { try { if (root.speechSynthesis) root.speechSynthesis.cancel(); } catch (e) { /* ignore */ } }
+  function speakJp(text, rate) {
+    const ss = root.speechSynthesis;
+    if (!ss || typeof root.SpeechSynthesisUtterance === 'undefined') { toast('這個瀏覽器不支援語音朗讀'); return; }
+    try {
+      ss.cancel();
+      const u = new root.SpeechSynthesisUtterance(text);
+      u.lang = 'ja-JP'; u.rate = rate || 1;
+      const all = ss.getVoices() || [], ja = all.filter(x => /^ja/i.test(x.lang));
+      if (ja.length) u.voice = ja.find(x => /kyoko|o-ren|enhanced|premium/i.test(x.name)) || ja[0];
+      else if (all.length) toast('手機還沒有日文語音：設定 → 輔助使用 → 朗讀內容 → 聲音 → 日文，下載一個');
+      ss.speak(u);
+    } catch (e) { toast('語音朗讀失敗'); }
+  }
+  function sayPhrase(si, i, rate) {
+    const x = HELP[si] && HELP[si].p[i]; if (!x) return;
+    speakJp(jpReading(x[0]), rate);
+  }
   function helpToday() { try { return E.jstDate(getNow()); } catch (e) { return ''; } }
   function openHelp() {
     const today = helpToday();
@@ -449,12 +469,13 @@
       h += '<div class="hp-scroll' + (isToday ? ' open' : '') + '"><button class="hp-head" data-act="help-sec" data-v="' + si + '" aria-expanded="' + isToday + '">' +
         '<span class="hp-t"><span class="hp-label">' + esc(sec.t) + '</span></span>' + (isToday ? '<span class="hp-today">今天</span>' : '') +
         '<span class="hp-cord"></span><span class="hp-n">' + sec.p.length + ' 句</span><span class="hp-arrow">▾</span></button><div class="hp-body"><div class="hp-paper">';
-      sec.p.forEach((x, i) => { h += '<button class="hp" data-act="phrase" data-v="' + si + '|' + i + '"><b>' + rb(x[0]) + '</b><small>' + esc(x[1]) + '</small></button>'; });
+      sec.p.forEach((x, i) => { h += '<div class="hp-row"><button class="hp" data-act="phrase" data-v="' + si + '|' + i + '"><b>' + rb(x[0]) + '</b><small>' + esc(x[1]) + '</small></button><button class="hp-say" data-act="say" data-v="' + si + '|' + i + '|1" aria-label="聽日文發音">🔊</button></div>'; });
       h += '</div></div><div class="hp-roll"></div></div>';
     });
     h += '<div class="hp-sec">📞 電話（點了直接撥）</div><div class="hp-tel"><a href="tel:119">🚑 119 救護車・火災</a><a href="tel:110">👮 110 警察</a><a href="tel:05038162787">☎ 訪日旅客熱線 050-3816-2787（中文・24 小時）</a></div>';
     $('help-list').innerHTML = h;
     $('help').className = 'sheet open';
+    try { if (root.speechSynthesis) root.speechSynthesis.getVoices(); } catch (e) { /* 先喚醒語音清單 */ }
   }
   // 捲軸展開／收起：量出內容高度，讓紙由上往下攤開（下方捲棒跟著往下走），收起時反向捲回
   function toggleHelpSec(si) {
@@ -486,7 +507,7 @@
   }
   function showPhrase(si, i) {
     const x = HELP[si] && HELP[si].p[i]; if (!x) return;
-    $('phrase').innerHTML = '<div class="pj">' + rb(x[0]) + '</div><div class="pz">' + esc(x[1]) + '</div><div class="px">點一下關閉</div>';
+    $('phrase').innerHTML = '<div class="pj">' + rb(x[0]) + '</div><div class="pz">' + esc(x[1]) + '</div><div class="pbtns"><button class="pbtn" data-act="say" data-v="' + si + '|' + i + '|1">🔊 聽發音</button><button class="pbtn" data-act="say" data-v="' + si + '|' + i + '|0.6">🐢 慢速</button></div><div class="px">點空白處關閉</div>';
     $('phrase').className = 'phrase open';
   }
 
@@ -859,7 +880,8 @@
     else if (a === 'help-close') $('help').className = 'sheet';
     else if (a === 'help-sec') toggleHelpSec(+v);
     else if (a === 'phrase') { const q = v.split('|'); showPhrase(+q[0], +q[1]); }
-    else if (a === 'phrase-close') $('phrase').className = 'phrase';
+    else if (a === 'say') { const q = v.split('|'); sayPhrase(+q[0], +q[1], +q[2] || 1); }
+    else if (a === 'phrase-close') { stopSpeak(); $('phrase').className = 'phrase'; }
     else if (a === 'rt-demo') rtDemo();
     else if (a === 'rt') { const q = v.split('|'); rtCheck(q[0], q[1], q[2]); }
     else if (a === 'take-alt' || a === 'pick-alt') {

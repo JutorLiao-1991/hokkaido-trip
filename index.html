@@ -264,7 +264,7 @@ transform:translateY(100%);transition:transform .32s cubic-bezier(.2,.8,.2,1)}
 .hp-roll::before{left:-5px}.hp-roll::after{right:-5px}
 .hp-scroll.open .hp-roll,.hp-scroll.anim .hp-roll{display:block}
 .hp-paper .hp{background:transparent;border:0;border-bottom:1px dashed #d9ccae;border-radius:0;margin:0;padding:12px 4px;color:var(--ink)}
-.hp-paper .hp:last-child{border-bottom:0}
+.hp-paper .hp-row:last-child .hp{border-bottom:0}
 .hp-paper .hp:active{background:rgba(184,51,42,.06)}
 .hp-paper .hp b{font-family:"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif;font-weight:700;line-height:1.9}
 .hp-paper .hp small{color:#6b5f4a}
@@ -384,6 +384,14 @@ body.snowing .hero::before{content:"";position:absolute;inset:-40px 0 0 0;pointe
   background-size:340px 80px;animation:snowfall 6s linear infinite}
 @keyframes snowfall{from{background-position:0 0}to{background-position:30px 80px}}
 @media (prefers-reduced-motion:reduce){.px-svg,.px-z,.count .dg.flip,.row.justdone .dot::after,.row.justdone .body,body.snowing .hero::before{animation:none!important}.veh,.prog i{transition:none}}
+
+/* 日文求助卡：發音按鈕 */
+.hp-row{position:relative}.hp-paper .hp{padding-right:54px}
+.hp-say{position:absolute;right:2px;top:50%;transform:translateY(-50%);width:44px;height:44px;border-radius:50%;border:1px solid #d9ccae;background:rgba(255,255,255,.75);font-size:18px;color:#8a5a30}
+.hp-say:active{background:#f1e4c8}
+.phrase .pbtns{display:flex;gap:12px;margin-top:26px}.phrase .pbtn{min-height:52px;padding:0 22px;border-radius:99px;border:2px solid var(--teal);background:#fff;color:var(--teal);font-size:18px;font-weight:700}.phrase .pbtn:active{background:#e3f0f2}
+body.glove .hp-say{width:56px;height:56px;font-size:22px}body.glove .phrase .pbtn{min-height:64px;font-size:21px}
+@media (prefers-color-scheme:dark){.hp-say{background:rgba(0,0,0,.25);border-color:#6a5c3e;color:#d9b27a}.phrase .pbtn{background:#1c2a2f}}
 </style>
 </head>
 <body>
@@ -407,7 +415,7 @@ body.snowing .hero::before{content:"";position:absolute;inset:-40px 0 0 0;pointe
 
 <div id="help" class="sheet">
   <div class="row2" style="justify-content:space-between;align-items:center"><b style="font-size:20px">🗣 日文求助卡</b><button class="big sub" data-act="help-close">關閉</button></div>
-  <div class="d-note">點捲軸打開分類，再點一句就會用超大字顯示，直接把手機給對方看。漢字上方是讀音。當天會用到的分類會自動打開。</div>
+  <div class="d-note">點捲軸打開分類，再點一句就會用超大字顯示，直接把手機給對方看。漢字上方是讀音；每句右邊的 🔊 可以聽手機唸給你聽（放大畫面還有 🐢 慢速）。當天會用到的分類會自動打開。</div>
   <div id="help-list"></div>
 </div>
 <div id="phrase" class="phrase" data-act="phrase-close"></div>
