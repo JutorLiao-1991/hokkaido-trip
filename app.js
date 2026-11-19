@@ -20,7 +20,7 @@
     ux: null, userScrollAt: 0, autoScrolling: false, justOpened: null, slide: '', scrollNow: true, alerted: {}, lastCount: null
   };
 
-  const APP_VER = 'v31';
+  const APP_VER = 'v32';
   function load(k, d) { try { const v = root.localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } }
   function save(k, v) { try { root.localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* 無痕模式等情況略過 */ } }
   function drop(k) { try { root.localStorage.removeItem(k); } catch (e) { /* ignore */ } }
@@ -663,6 +663,34 @@
       days: S.data.days.map(d => ({ date: d.date, md: md(d.date), on: d.date === day.date, today: !!today && today.date === d.date }))
     };
   }
+  /* 住宿：從當天（或前一天）的 lodging 名稱，找出資料裡同名項目的座標 */
+  function hotelName(s) { return String(s || '').replace(/（.*$/, '').replace(/\(.*$/, '').trim(); }
+  function hotelCoord(name) {
+    const key = name.replace(/\s/g, '').toLowerCase(); let hit = null;
+    if (!key) return null;
+    S.data.days.forEach(d => d.plans.forEach(p => p.items.forEach(it => {
+      if (hit || it.lat == null || !it.q) return;
+      if (String(it.w || '').replace(/\s/g, '').toLowerCase().indexOf(key) >= 0) hit = it;
+    })));
+    return hit;
+  }
+  function mapLodging(date) {
+    if (!S.data) return null;
+    const day = S.data.days.find(d => d.date === date) || S.data.days[0], name = hotelName(day.lodging);
+    const it = name && hotelCoord(name); if (!it) return null;
+    return { name: name, q: it.q, lat: it.lat, lng: it.lng };
+  }
+  function mapAnchors() {
+    const seen = {}, out = [];
+    S.data.days.forEach(d => { const h = mapLodging(d.date); if (h) { const k = h.lat.toFixed(3) + ',' + h.lng.toFixed(3); if (!seen[k]) { seen[k] = 1; out.push({ lat: h.lat, lng: h.lng }); } } });
+    return out;
+  }
+  function showBig(jp, zh) {
+    S.bigJp = jp;
+    $('phrase').innerHTML = '<div class="pj">' + esc(jp) + '</div><div class="pz">' + esc(zh) + '</div><div class="pbtns"><button class="pbtn" data-act="say-big">🔊 聽發音</button></div><div class="px">點空白處關閉</div>';
+    $('phrase').className = 'phrase open';
+  }
+
   function mapAllPoints() {
     const seen = {}, out = [];
     S.data.days.forEach(d => d.plans.forEach(p => p.items.forEach(it => {
@@ -922,6 +950,7 @@
     else if (a === 'help-sec') toggleHelpSec(+v);
     else if (a === 'phrase') { const q = v.split('|'); showPhrase(+q[0], +q[1]); }
     else if (a === 'say') { const q = v.split('|'); sayPhrase(+q[0], +q[1], +q[2] || 1); }
+    else if (a === 'say-big') { speakJp(S.bigJp || '', 1); }
     else if (a === 'phrase-close') { stopSpeak(); $('phrase').className = 'phrase'; }
     else if (a === 'rt-demo') rtDemo();
     else if (a === 'rt') { const q = v.split('|'); rtCheck(q[0], q[1], q[2]); }
@@ -1113,6 +1142,7 @@
         copy: t => { const ok = () => toast('已複製：' + t); if (root.navigator.clipboard && root.navigator.clipboard.writeText) root.navigator.clipboard.writeText(t).then(ok, () => toast('複製失敗，請手動選取')); else toast('這個瀏覽器不能複製'); },
         wantGeo: () => { if (S.watch == null) startGeo(); },
         onOpen: () => { S.mapDay = null; },
+        lodging: mapLodging, anchors: mapAnchors, showBig: showBig,
         setDay: d => { S.mapDay = d; if (S.map) S.map.refresh(); }
       });
     }

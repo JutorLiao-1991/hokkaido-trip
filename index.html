@@ -436,6 +436,25 @@ body.glove .hp-say{width:56px;height:56px;font-size:22px}body.glove .phrase .pbt
 .mp-offmsg{display:none;position:absolute;left:12px;right:12px;top:10px;padding:8px 10px;border-radius:10px;background:#fff4e5;color:#3a2a10;font-size:12px}.mp-view.mp-off .mp-offmsg{display:block}
 body.glove .mp-fab{min-width:60px;min-height:60px;font-size:23px}body.glove .mp-b{min-height:46px;font-size:17px}body.glove .mp-tab{width:42px}
 @media (prefers-color-scheme:dark){.mp-view{background-color:#1a272d}.mp-t{filter:brightness(.8) saturate(.85)}.mp-lm{color:#d6e2e6;text-shadow:0 0 3px #000}.mp-offmsg{background:#3a2c14;color:#f4e3c3}.mp-attr{background:rgba(20,30,34,.75);color:#a9bcc3}.mp-fab{background:rgba(30,44,50,.94);color:#eef4f6;border-color:rgba(255,255,255,.18)}}
+/* 道央地圖：附近店家、回飯店、我在哪 */
+.mp-cats{display:flex;gap:6px;overflow-x:auto;padding:8px 12px;border-top:1px solid var(--line);scrollbar-width:none;flex:none}.mp-cats::-webkit-scrollbar{display:none}
+.mp-cat{flex:none;min-height:38px;padding:0 12px;border-radius:99px;border:1px solid var(--line);background:var(--card);color:var(--fg);font-size:14px;font-weight:700;white-space:nowrap}
+.mp-cat.on{background:var(--teal);border-color:var(--teal);color:#fff}.mp-cat.act{border-color:var(--teal);color:var(--teal)}.mp-cat.act.on{color:#fff}
+.mp-near{display:none;flex:none;max-height:38%;overflow-y:auto;border-top:1px solid var(--line);padding:6px 12px 8px;background:var(--bg)}.mp-near.on{display:block}
+.mp-n-h{display:flex;align-items:center;gap:6px}.mp-n-h b{font-size:15px}.mp-rad{display:flex;gap:4px;margin-left:auto}
+.mp-r{min-height:30px;padding:0 9px;border-radius:99px;border:1px solid var(--line);background:var(--card);color:var(--fg);font-size:12px}.mp-r.on{background:var(--teal);color:#fff;border-color:var(--teal)}
+.mp-ic.sm{min-width:30px;min-height:30px;font-size:15px}
+.mp-n-s{font-size:12px;color:var(--muted);margin:2px 0 4px}.mp-link{border:0;background:none;color:var(--teal);font-size:12px;font-weight:700;text-decoration:underline;padding:0}.mp-old{color:#b4672b}
+.mp-n-m{font-size:13px;color:var(--muted);padding:10px 2px}.mp-n-f{font-size:11px;color:var(--muted);margin-top:6px}
+.mp-n-l{display:flex;flex-direction:column;gap:5px}
+.mp-n-i{display:grid;grid-template-columns:1fr auto;gap:0 8px;text-align:left;padding:7px 10px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--fg);font-size:14px}
+.mp-n-i b{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.mp-n-i span{font-size:13px;color:var(--teal);font-weight:700}.mp-n-i small{grid-column:1/-1;font-size:11px;color:var(--muted);margin-top:1px}
+.mp-n-i.on{border-color:#ffb000;box-shadow:0 0 0 2px rgba(255,176,0,.4)}
+.mp-tag.t-p{background:#5b6ec7}.mp-addr{font-size:20px;font-weight:800;margin:4px 0;line-height:1.35}
+.mp-pin.poi{background:#fff;color:#10222a;border-color:#5b6ec7;font-size:14px}.mp-pin.home{background:#7a4fc2;width:34px;height:34px;font-size:16px;line-height:30px;z-index:2}
+.mp-lab.poi{background:rgba(91,110,199,.95)}
+body.glove .mp-cat{min-height:50px;font-size:17px}body.glove .mp-n-i{font-size:17px;padding:10px 12px}body.glove .mp-r{min-height:42px;font-size:14px}
+@media (prefers-color-scheme:dark){.mp-pin.poi{background:#223039;color:#eef4f6}.mp-old{color:#e0a56a}}
 @media (prefers-reduced-motion:reduce){.mp,.mp-panel,.mp-scrim,.mp-t{transition:none}.mp-me-ring{animation:none}}
 </style>
 </head>
@@ -534,6 +553,8 @@ body.glove .mp-fab{min-width:60px;min-height:60px;font-size:23px}body.glove .mp-
       <div class="mp-attr">出典：国土地理院（地理院タイル）</div>
       <div class="mp-offmsg">地圖圖片沒載入（可能沒訊號）。圓點的相對位置仍然準確；連 Wi-Fi 時按右上 📥 可先存好底圖。</div>
     </div>
+    <div id="mp-near" class="mp-near"></div>
+    <div id="mp-cats" class="mp-cats"></div>
   </aside>
 </div>
 <script src="engine.js"></script>

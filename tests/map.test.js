@@ -29,3 +29,29 @@ const pts=[{lat:43.0578,lng:141.3503},{lat:42.7876,lng:141.6804},{lat:43.7683,ln
 const l=M.prefetchList(pts);assert(l.length>300&&l.length<1500,'prefetch '+l.length);
 assert(new Set(l.map(t=>t.join('/'))).size===l.length);
 console.log('map ok, prefetch',l.length);
+// 附近店家：查詢語法、解析、排序
+const q1=M.buildQuery('conv',43.0578,141.3503,500);assert(q1.includes('[out:json]')&&q1.includes('nwr["shop"="convenience"](around:500,43.05780,141.35030);')&&q1.endsWith('out center tags 200;'));
+assert(M.buildQuery('drug',43,141,1000).split('nwr').length===3,'藥妝＝2 條件');
+assert.throws(()=>M.buildQuery('zzz',1,1,1));
+const ctr={lat:43.0578,lng:141.3503};
+const js={elements:[
+ {type:'node',id:1,lat:43.0600,lon:141.3503,tags:{name:'遠的店',shop:'convenience'}},
+ {type:'node',id:2,lat:43.0580,lon:141.3503,tags:{'name:ja':'セイコーマート','name':'Seicomart'}},
+ {type:'way',id:3,center:{lat:43.0585,lon:141.3510},tags:{brand:'ローソン'}},
+ {type:'node',id:4,lat:43.0581,lon:141.3504,tags:{shop:'convenience'}},
+ {type:'node',id:5,tags:{name:'沒座標'}},
+ {type:'node',id:2,lat:43.0580,lon:141.3503,tags:{'name:ja':'セイコーマート'}}]};
+const r1=M.parsePoi(js,ctr,'conv');
+assert(r1.length===4&&r1.every((x,i)=>i===0||r1[i-1].d<=x.d),'依距離遞增、去重、略過沒座標');
+assert(r1[0].t==='セイコーマート');
+assert(M.parsePoi({elements:[{type:'node',id:9,lat:43.058,lon:141.35,tags:{amenity:'restaurant'}}]},ctr,'food').length===0,'餐廳沒店名不列');
+const rf=M.parsePoi({elements:[{type:'node',id:9,lat:43.058,lon:141.35,tags:{name:'麵屋',amenity:'restaurant',cuisine:'ramen;sushi',highchair:'yes',opening_hours:'Mo-Su 11:00-22:00'}}]},ctr,'food')[0];
+assert(rf.bits.join().includes('拉麵・壽司')&&rf.bits.join().includes('兒童椅')&&rf.oh.includes('11:00-22:00'));
+assert(M.parsePoi({elements:[{type:'node',id:7,lat:43.058,lon:141.35,tags:{amenity:'toilets'}}]},ctr,'wc')[0].t==='公共廁所');
+assert(M.parsePoi(null,ctr,'conv').length===0);
+assert(M.fmtOh('24/7')==='24 小時營業'&&M.fmtOh('')==='');
+assert(M.fmtOh('x'.repeat(100)).length<70);
+// 反向查詢 → 日文地址
+assert.deepStrictEqual(M.addrFrom({results:{muniCd:'01101',lv01Nm:'北一条西３丁目'}}),{text:'北海道札幌市中央区北一条西３丁目',muniKnown:true});
+assert(M.addrFrom({results:{muniCd:'99999',lv01Nm:'ＸＸ'}}).muniKnown===false&&M.addrFrom({})===null&&M.addrFrom(null)===null);
+console.log('near ok');
