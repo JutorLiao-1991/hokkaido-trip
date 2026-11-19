@@ -199,7 +199,7 @@
       const m = mods[it.id];
       if (m) {
         if (m.t) o.t = m.t;
-        if (m.q) { o.q = m.q; if (!o.mode) o.mode = 'walking'; }
+        if (m.q) { o.q = m.q; delete o.lat; delete o.lng; if (!o.mode) o.mode = 'walking'; }
         if (m.n != null && m.n !== '') o.note = m.n;
         if (m.d) o.dur = m.d;
         if (m.tmp) o.live = true; else { o.ed = true; info.edited++; }

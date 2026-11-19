@@ -20,7 +20,7 @@
     ux: null, userScrollAt: 0, autoScrolling: false, justOpened: null, slide: '', scrollNow: true, alerted: {}, lastCount: null
   };
 
-  const APP_VER = 'v29';
+  const APP_VER = 'v30';
   function load(k, d) { try { const v = root.localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } }
   function save(k, v) { try { root.localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* 無痕模式等情況略過 */ } }
   function drop(k) { try { root.localStorage.removeItem(k); } catch (e) { /* ignore */ } }
@@ -629,6 +629,47 @@
     $('foot').innerHTML = esc(S.data.trip.disclaimer || '') + '<br>資料查核日 ' + esc(S.data.trip.checked || '');
     const loc = $('btn-loc'); if (loc) loc.className = S.watch != null ? 'on' : '';
     afterRender(a, day, now);
+    if (S.map && S.map.isOpen()) S.map.refresh();
+  }
+
+
+  /* ---------- 道央地圖側欄：把某一天的地點、我的位置、下一站交給 map.js ---------- */
+  function mapModel() {
+    if (!S.data) return null;
+    const now = getNow(), today = E.dayFor(S.data, now);
+    const tabDay = S.data.days.find(d => d.date === S.tab);
+    const date = S.mapDay || (today ? today.date : (tabDay ? tabDay.date : S.data.days[0].date));
+    const day = S.data.days.find(d => d.date === date) || S.data.days[0];
+    const items = E.materialize(eff(day).day, planFor(day));
+    const isToday = !!today && today.date === day.date;
+    const km = (a, b) => root.HKMap.distKm(a, b);
+    const pts = []; let skipped = 0;
+    items.forEach(it => {
+      if (it.lat == null || it.lng == null) { if (it.q) skipped++; return; }
+      const t = String(it.t || ''), head = t.split('：')[0];
+      pts.push({
+        id: it.id, t: t, q: it.q || '', mode: it.mode, lat: it.lat, lng: it.lng, time: E.fmtTime(it.start),
+        short: head.length > 14 ? head.slice(0, 13) + '…' : head,
+        icon: /駅/.test(it.q || '') ? '🚉' : /東急|VILLA|ベッセル/.test(it.q || '') ? '🛏' : null,
+        done: isToday && it.end <= now, cur: isToday && it.start <= now && now < it.end
+      });
+    });
+    const cur = pts.find(p => p.cur) || null;
+    const nextP = isToday ? pts.find(p => !p.done && !p.cur && (!cur || km(cur, p) > 0.15)) : null;
+    const note = skipped ? '另有 ' + skipped + ' 個項目還沒有座標（例如你自己新增或改過地點的），不會標在地圖上。' : '';
+    return {
+      date: day.date, isToday: isToday, pts: pts, nextId: nextP ? nextP.id : null, curId: cur ? cur.id : null,
+      pos: S.pos || null, note: note,
+      days: S.data.days.map(d => ({ date: d.date, md: md(d.date), on: d.date === day.date, today: !!today && today.date === d.date }))
+    };
+  }
+  function mapAllPoints() {
+    const seen = {}, out = [];
+    S.data.days.forEach(d => d.plans.forEach(p => p.items.forEach(it => {
+      if (it.lat == null || it.lng == null) return; const k = it.lat.toFixed(4) + ',' + it.lng.toFixed(4);
+      if (!seen[k]) { seen[k] = 1; out.push({ lat: it.lat, lng: it.lng }); }
+    })));
+    return out;
   }
 
   /* ---------- 繪製後的動態效果 ---------- */
@@ -938,9 +979,9 @@
         const regs = await root.navigator.serviceWorker.getRegistrations();
         await Promise.all(regs.map(r => r.unregister()));
       }
-      if (root.caches) { const ks = await root.caches.keys(); await Promise.all(ks.map(k => root.caches.delete(k))); }
+      if (root.caches) { const ks = await root.caches.keys(); await Promise.all(ks.filter(k => k !== 'hk-tiles').map(k => root.caches.delete(k))); }
       msg.textContent = '下載最新版…';
-      const files = ['./', 'engine.js', 'prep.js', 'station.js', 'ux.js', 'pixel.js', 'app.js', 'stations.json', 'sw.js'];
+      const files = ['./', 'engine.js', 'prep.js', 'station.js', 'ux.js', 'map.js', 'pixel.js', 'app.js', 'stations.json', 'sw.js'];
       await Promise.all(files.map(f => root.fetch(f, { cache: 'reload' }).catch(() => null)));
     } catch (e) { msg.textContent = '清除時遇到問題：' + e.message + '（仍會重新載入）'; }
     root.location.replace(root.location.pathname + '?r=' + Date.now());
@@ -952,7 +993,7 @@
     if (S.watch != null) { root.navigator.geolocation.clearWatch(S.watch); S.watch = null; S.pos = null; toast('已關閉定位'); render(); return; }
     if (!root.navigator.geolocation) { toast('這個瀏覽器不支援定位'); return; }
     S.watch = root.navigator.geolocation.watchPosition(p => {
-      S.pos = { lat: p.coords.latitude, lng: p.coords.longitude }; render();
+      S.pos = { lat: p.coords.latitude, lng: p.coords.longitude, acc: p.coords.accuracy }; render();
     }, err => { toast('定位失敗：' + err.message); S.watch = null; render(); }, { enableHighAccuracy: false, maximumAge: 30000, timeout: 20000 });
     toast('定位已開啟（只在 App 開著時有效）');
   }
@@ -1063,6 +1104,16 @@
         items: date => { const d = S.data.days.find(x => x.date === date); return d ? E.materialize(eff(d).day, planFor(d)) : []; },
         lang: () => S.lang,
         openItem: (date, id) => { S.tab = date; S.expanded[date + '/' + id] = true; S.justOpened = date + '/' + id; render(); }
+      });
+    }
+    if (root.HKMap && !S.map) {
+      S.map = root.HKMap.init({
+        doc: doc, getModel: mapModel, allPoints: mapAllPoints, toast: toast,
+        navUrl: pt => mapsUrl({ q: pt.q, mode: pt.mode }),
+        copy: t => { const ok = () => toast('已複製：' + t); if (root.navigator.clipboard && root.navigator.clipboard.writeText) root.navigator.clipboard.writeText(t).then(ok, () => toast('複製失敗，請手動選取')); else toast('這個瀏覽器不能複製'); },
+        wantGeo: () => { if (S.watch == null) startGeo(); },
+        onOpen: () => { S.mapDay = null; },
+        setDay: d => { S.mapDay = d; if (S.map) S.map.refresh(); }
       });
     }
     bind(); render(); S.doneReady = true; wxLoad();

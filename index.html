@@ -392,6 +392,51 @@ body.snowing .hero::before{content:"";position:absolute;inset:-40px 0 0 0;pointe
 .phrase .pbtns{display:flex;gap:12px;margin-top:26px}.phrase .pbtn{min-height:52px;padding:0 22px;border-radius:99px;border:2px solid var(--teal);background:#fff;color:var(--teal);font-size:18px;font-weight:700}.phrase .pbtn:active{background:#e3f0f2}
 body.glove .hp-say{width:56px;height:56px;font-size:22px}body.glove .phrase .pbtn{min-height:64px;font-size:21px}
 @media (prefers-color-scheme:dark){.hp-say{background:rgba(0,0,0,.25);border-color:#6a5c3e;color:#d9b27a}.phrase .pbtn{background:#1c2a2f}}
+
+/* ===== 道央地圖側欄 ===== */
+.mp-tab{touch-action:none;position:fixed;right:0;top:46%;z-index:9;width:34px;padding:8px 0 6px;border:1px solid var(--line);border-right:0;border-radius:14px 0 0 14px;background:var(--card);color:var(--fg);font-size:20px;line-height:1;box-shadow:-2px 2px 10px rgba(0,0,0,.18);display:flex;flex-direction:column;align-items:center;gap:2px;opacity:.92}
+.mp-tab small{font-size:10px;color:var(--muted);writing-mode:vertical-rl;letter-spacing:2px;margin-top:2px}
+.mp{position:fixed;inset:0;z-index:30;visibility:hidden;pointer-events:none}
+.mp.open{visibility:visible;pointer-events:auto}
+.mp-scrim{position:absolute;inset:0;background:rgba(10,20,25,.45);opacity:0;transition:opacity .28s;touch-action:none}
+.mp.open .mp-scrim{opacity:1}
+.mp-panel{position:absolute;top:0;right:0;bottom:0;width:min(94vw,460px);background:var(--bg);color:var(--fg);display:flex;flex-direction:column;transform:translateX(104%);transition:transform .3s cubic-bezier(.2,.8,.2,1);box-shadow:-6px 0 24px rgba(0,0,0,.3);padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
+.mp.open .mp-panel{transform:none}
+.mp-head{display:flex;align-items:center;justify-content:space-between;padding:8px 12px 4px;font-size:17px;touch-action:pan-y}
+.mp-hb{display:flex;gap:4px}.mp-ic{font-size:20px;min-width:40px;min-height:40px;border:0;background:none;color:var(--fg);border-radius:12px}
+.mp-days{display:flex;gap:6px;overflow-x:auto;padding:2px 12px 6px;scrollbar-width:none}.mp-days::-webkit-scrollbar{display:none}
+.mp-day{flex:none;min-height:34px;padding:0 12px;border-radius:99px;border:1px solid var(--line);background:var(--card);color:var(--fg);font-size:14px}
+.mp-day.on{background:var(--teal);border-color:var(--teal);color:#fff;font-weight:700}.mp-day.td:not(.on){border-color:var(--teal);color:var(--teal);font-weight:700}
+.mp-info{padding:4px 12px 8px;border-bottom:1px solid var(--line);min-height:64px}
+.mp-i-t{font-weight:800;font-size:16px;line-height:1.35}.mp-i-s{font-size:13px;color:var(--muted);margin-top:2px;word-break:break-all}.mp-i-n{font-size:12px;color:var(--muted);margin-top:4px}
+.mp-i-a{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.mp-b{display:inline-flex;align-items:center;justify-content:center;min-height:36px;padding:0 14px;border-radius:99px;border:1px solid var(--teal);background:var(--card);color:var(--teal);font-size:14px;font-weight:700;text-decoration:none}
+.mp-b.pri{background:var(--teal);color:#fff}
+.mp-tag{display:inline-block;font-size:12px;padding:1px 8px;border-radius:99px;margin-right:6px;color:#fff;vertical-align:1px}.mp-tag.t-n{background:#e5482a}.mp-tag.t-c{background:#1b7f4a}.mp-tag.t-d{background:#7c8c92}
+.mp-bar{height:8px;border-radius:99px;background:var(--line);margin:8px 0;overflow:hidden}.mp-bar i{display:block;height:100%;background:var(--teal)}
+.mp-view{position:relative;flex:1;min-height:200px;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none;background:#e8eef0 repeating-linear-gradient(0deg,rgba(0,0,0,.05) 0 1px,transparent 1px 48px),repeating-linear-gradient(90deg,rgba(0,0,0,.05) 0 1px,transparent 1px 48px)}
+.mp-tiles,.mp-marks,.mp-labs{position:absolute;inset:0;pointer-events:none}
+.mp-t{position:absolute;left:0;top:0;max-width:none;opacity:0;transition:opacity .2s;-webkit-user-drag:none}.mp-t.ld{opacity:1}
+.mp-lines{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.mp-path{fill:none;stroke:#0f6f7c;stroke-width:2;stroke-dasharray:2 5;stroke-linecap:round;opacity:.55}
+.mp-go{stroke:#e5482a;stroke-width:3;stroke-dasharray:8 6;stroke-linecap:round}
+.mp-acc{fill:rgba(30,110,230,.14);stroke:rgba(30,110,230,.4);stroke-width:1}
+.mp-me-ring{fill:rgba(30,110,230,.22);animation:mpPulse 2s ease-out infinite;transform-origin:center}.mp-me-dot{fill:#1e6ee6;stroke:#fff;stroke-width:3}
+@keyframes mpPulse{0%{transform:scale(.6);opacity:1}100%{transform:scale(2);opacity:0}}
+.mp-pin{position:absolute;left:0;top:0;pointer-events:auto;width:26px;height:26px;padding:0;border-radius:50%;border:2px solid #fff;background:#0f6f7c;color:#fff;font-size:13px;font-weight:800;line-height:22px;text-align:center;box-shadow:0 1px 5px rgba(0,0,0,.4)}
+.mp-pin.done{background:#8b9aa0}.mp-pin.cur{background:#1b7f4a}.mp-pin.next{background:#e5482a;width:34px;height:34px;font-size:16px;line-height:30px;z-index:2;box-shadow:0 0 0 5px rgba(229,72,42,.25),0 2px 8px rgba(0,0,0,.45)}
+.mp-pin.sel{outline:3px solid #ffb000;outline-offset:1px;z-index:3}
+.mp-lab{position:absolute;transform:translate(-50%,-100%);max-width:200px;padding:3px 9px;border-radius:10px;background:rgba(16,34,42,.9);color:#fff;font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.mp-lab.nx{background:#c8381c}
+.mp-lm{position:absolute;transform:translate(-50%,-50%);font-size:13px;font-weight:700;color:#41545b;text-shadow:0 0 3px #fff}
+.mp-btns{position:absolute;left:10px;bottom:calc(26px + 4px);display:flex;flex-direction:column;gap:8px}
+.mp-zoom{position:absolute;right:10px;bottom:30px;display:flex;flex-direction:column;gap:8px}
+.mp-fab{min-width:48px;min-height:48px;border-radius:14px;border:1px solid rgba(0,0,0,.18);background:rgba(255,255,255,.94);color:#10222a;font-size:19px;font-weight:700;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.05;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+.mp-fab small{font-size:10px;font-weight:700;margin-top:1px}.mp-fab.sm{min-width:44px;min-height:44px;font-size:22px}
+.mp-attr{position:absolute;right:0;bottom:0;left:0;padding:3px 8px;font-size:10px;color:#41545b;background:rgba(255,255,255,.75);text-align:right;pointer-events:none}
+.mp-offmsg{display:none;position:absolute;left:12px;right:12px;top:10px;padding:8px 10px;border-radius:10px;background:#fff4e5;color:#3a2a10;font-size:12px}.mp-view.mp-off .mp-offmsg{display:block}
+body.glove .mp-fab{min-width:60px;min-height:60px;font-size:23px}body.glove .mp-b{min-height:46px;font-size:17px}body.glove .mp-tab{width:42px}
+@media (prefers-color-scheme:dark){.mp-view{background-color:#1a272d}.mp-t{filter:brightness(.8) saturate(.85)}.mp-lm{color:#d6e2e6;text-shadow:0 0 3px #000}.mp-offmsg{background:#3a2c14;color:#f4e3c3}.mp-attr{background:rgba(20,30,34,.75);color:#a9bcc3}.mp-fab{background:rgba(30,44,50,.94);color:#eef4f6;border-color:rgba(255,255,255,.18)}}
+@media (prefers-reduced-motion:reduce){.mp-panel,.mp-scrim,.mp-t{transition:none}.mp-me-ring{animation:none}}
 </style>
 </head>
 <body>
@@ -472,10 +517,30 @@ body.glove .hp-say{width:56px;height:56px;font-size:22px}body.glove .phrase .pbt
 <div id="board" class="led"><div id="board-in"></div></div>
 <div id="guide" class="gsheet"><div id="guide-in"></div></div>
 <div id="toast"></div>
+<button id="mp-tab" class="mp-tab" aria-label="打開道央地圖">🗺<small>地圖</small></button>
+<div id="mp" class="mp" aria-hidden="true">
+  <div class="mp-scrim" data-mp="close"></div>
+  <aside id="mp-panel" class="mp-panel" role="dialog" aria-label="道央地圖">
+    <div id="mp-head" class="mp-head"><b>🗺 道央地圖</b><span class="mp-hb"><button class="mp-ic" data-mp="dl" aria-label="存離線地圖" title="先存好地圖（沒訊號也能看）">📥</button><button class="mp-ic" data-mp="close" aria-label="關閉">✕</button></span></div>
+    <div id="mp-days" class="mp-days"></div>
+    <div id="mp-info" class="mp-info"></div>
+    <div id="mp-view" class="mp-view">
+      <div id="mp-tiles" class="mp-tiles"></div>
+      <svg id="mp-lines" class="mp-lines" xmlns="http://www.w3.org/2000/svg"></svg>
+      <div id="mp-marks" class="mp-marks"></div>
+      <div id="mp-labs" class="mp-labs"></div>
+      <div class="mp-btns"><button class="mp-fab" data-mp="me" aria-label="我的位置">📍<small>我</small></button><button class="mp-fab" data-mp="next" aria-label="看下一站">🎯<small>下一站</small></button><button class="mp-fab" data-mp="all" aria-label="看全部">⤢<small>全部</small></button></div>
+      <div class="mp-zoom"><button class="mp-fab sm" data-mp="zin" aria-label="放大">＋</button><button class="mp-fab sm" data-mp="zout" aria-label="縮小">－</button></div>
+      <div class="mp-attr">出典：国土地理院（地理院タイル）</div>
+      <div class="mp-offmsg">地圖圖片沒載入（可能沒訊號）。圓點的相對位置仍然準確；連 Wi-Fi 時按右上 📥 可先存好底圖。</div>
+    </div>
+  </aside>
+</div>
 <script src="engine.js"></script>
 <script src="prep.js"></script>
 <script src="station.js"></script>
 <script src="ux.js"></script>
+<script src="map.js"></script>
 <script src="pixel.js"></script>
 <script src="app.js"></script>
 </body>
