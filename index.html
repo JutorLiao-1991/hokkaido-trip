@@ -498,6 +498,14 @@ body.glove .mp-cat{min-height:50px;font-size:17px}body.glove .mp-n-i{font-size:1
   <div style="margin-top:10px">日期時間（日本時間）<input type="datetime-local" id="sim-input"></div>
   <div class="row2"><button class="big" id="sim-start">開始模擬</button><button class="big sub" id="sim-stop">回到現實時間</button></div>
 
+  <h2>📍 模擬位置（測試定位用）</h2>
+  <div class="d-note">選一個地點，App 就當你人在那裡：狀態卡、地圖、附近店家、站內導引、帶我回飯店都照這個位置算，真實定位會暫停。可以搭配上面的模擬時間一起用。真正出門前記得停止。</div>
+  <div id="simpos-now" class="d-note" style="margin-top:6px"></div>
+  <div class="row2"><button class="big sub" data-act="simpos-follow">放到模擬時間的那一站</button></div>
+  <div id="simpos-presets" class="row2"></div>
+  <div style="margin-top:10px">自訂座標<input type="text" id="simpos-input" inputmode="decimal" placeholder="例：43.0687, 141.3507（Google 地圖長按可複製）"></div>
+  <div class="row2"><button class="big" id="simpos-start">使用這個座標</button><button class="big sub" id="simpos-stop">回到真實定位</button></div>
+
   <h2>📋 出發前核對清單</h2>
   <ul id="checklist"></ul>
 
@@ -507,6 +515,10 @@ body.glove .mp-cat{min-height:50px;font-size:17px}body.glove .mp-n-i{font-size:1
   <textarea id="import-text" placeholder="把新的行程 JSON 整段貼在這裡"></textarea>
   <div class="row2"><button class="big" id="import-btn">匯入</button><button class="big sub" id="import-reset">從這支手機登出</button></div>
   <div id="import-msg" style="margin-top:8px;font-size:14px"></div>
+
+  <h2>📤 匯出目前資料</h2>
+  <div class="d-note">把這支手機裡的完整行程資料（行程、行前清單、站內導引、日文站名）存成一個檔案。要請 Claude 改行程或行前清單時，把這個檔案傳給它，才能沿用原本的編號、不弄丟勾選。不含家庭代碼。</div>
+  <div class="row2"><button class="big sub" data-act="export-data">匯出資料檔</button></div>
 
   <h2>🔄 一鍵重啟</h2>
   <div class="d-note">畫面還是舊的、功能沒更新時按這個：清掉舊版快取，重新抓最新版。行程與家庭代碼不會被刪。</div>

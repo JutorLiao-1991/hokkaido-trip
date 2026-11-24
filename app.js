@@ -20,7 +20,7 @@
     ux: null, userScrollAt: 0, autoScrolling: false, justOpened: null, slide: '', scrollNow: true, alerted: {}, lastCount: null
   };
 
-  const APP_VER = 'v32';
+  const APP_VER = 'v33';
   function load(k, d) { try { const v = root.localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } }
   function save(k, v) { try { root.localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* 無痕模式等情況略過 */ } }
   function drop(k) { try { root.localStorage.removeItem(k); } catch (e) { /* ignore */ } }
@@ -278,6 +278,7 @@
 
   function bannerHTML(now) {
     const out = [];
+    if (S.simPos) out.push('<div class="notice sim">📍 模擬位置：' + esc(S.simPos.label || (S.simPos.lat.toFixed(4) + ', ' + S.simPos.lng.toFixed(4))) + '　<button class="link" data-act="simpos-stop">回到真實定位</button></div>');
     if (S.sim) out.push('<div class="notice sim">🕒 模擬時間（日本時間）' + md(E.jstDate(getNow())) + ' ' + E.fmtTime(getNow()) + '　<button class="link" data-act="sim-stop">回到現實</button></div>');
     const v = E.verifyInfo(S.data, now);
     if (v && v.state === 'due') out.push('<div class="notice warn">⚠ 已進入出發前一週：請重新核對 JR／巴士時刻與各項預約。<button class="link" data-act="open-settings">核對清單</button></div>');
@@ -627,7 +628,7 @@
     $('timeline').innerHTML = timelineHTML({ items: dayItems, day, now, a: dayCtx.a });
     $('bar').innerHTML = barHTML(a);
     $('foot').innerHTML = esc(S.data.trip.disclaimer || '') + '<br>資料查核日 ' + esc(S.data.trip.checked || '');
-    const loc = $('btn-loc'); if (loc) loc.className = S.watch != null ? 'on' : '';
+    const loc = $('btn-loc'); if (loc) loc.className = (S.watch != null || S.simPos) ? 'on' : '';
     afterRender(a, day, now);
     if (S.map && S.map.isOpen()) S.map.refresh();
   }
@@ -942,6 +943,9 @@
       if (root.navigator.clipboard && root.navigator.clipboard.writeText) root.navigator.clipboard.writeText(v).then(done, () => toast('複製失敗，請手動選取'));
       else toast('此瀏覽器不支援複製');
     } else if (a === 'sim-stop') { S.sim = null; drop('hk.sim'); S.tab = null; render(); }
+    else if (a === 'simpos-stop') stopSimPos();
+    else if (a === 'simpos-follow') followSimPos();
+    else if (a === 'export-data') exportData();
     else if (a === 'open-settings') openSettings();
     else if (a === 'hard-reset') hardReset();
     else if (a === 'rt-test') rtTest();
@@ -995,6 +999,8 @@
     $('sim-input').value = E.jstDate(now) + 'T' + E.fmtTime(now);
     $('sim-presets').innerHTML = S.data.days.filter(d => d.demo).map(d =>
       '<button class="chip" data-sim="' + d.date + 'T' + d.demo + '">' + md(d.date) + ' ' + d.demo + '</button>').join('');
+    $('simpos-presets').innerHTML = simPosPresets().map((x, i) => '<button class="chip" data-simpos="' + i + '">' + esc(x.label) + '</button>').join('');
+    $('simpos-now').textContent = S.simPos ? '目前模擬：' + (S.simPos.label || '') + '（' + S.simPos.lat.toFixed(5) + ', ' + S.simPos.lng.toFixed(5) + '）' : '目前使用真實定位';
     $('checklist').innerHTML = ((S.data.trip.checklist) || []).map(c => '<li>' + esc(c) + '</li>').join('');
     $('data-stamp').textContent = '行程資料版本 ' + (S.data.trip.version || '-') + (familyCode() ? '（雲端，已用家庭代碼上鎖）' : '（這支手機）') + '　程式 ' + APP_VER;
     $('settings').className = 'sheet open';
@@ -1018,10 +1024,89 @@
 
   function closeSettings() { $('settings').className = 'sheet'; }
 
+  /* ---------- 模擬位置（出發前測試定位相關功能）----------
+   * 開啟後 S.pos 固定為選的座標，真實定位暫停；狀態卡、地圖、附近店家、站內導引、帶我回飯店都照這個位置算。 */
+  function parseLatLng(text) {
+    const m = String(text || '').match(/(-?\d{1,3}(?:\.\d+)?)\s*[,，\s]\s*(-?\d{1,3}(?:\.\d+)?)/);
+    if (!m) return null;
+    const lat = Number(m[1]), lng = Number(m[2]);
+    if (!(lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180)) return null;
+    return { lat: lat, lng: lng };
+  }
+  function setSimPos(p, label) {
+    if (S.watch != null && root.navigator.geolocation) { root.navigator.geolocation.clearWatch(S.watch); S.watch = null; }
+    S.simPos = { lat: p.lat, lng: p.lng, label: label || '' };
+    save('hk.simpos', S.simPos);
+    S.pos = { lat: p.lat, lng: p.lng, acc: 20, sim: true };
+    toast('📍 已模擬位置：' + (label || p.lat.toFixed(4) + ', ' + p.lng.toFixed(4)));
+    closeSettings(); render();
+  }
+  function stopSimPos() {
+    S.simPos = null; drop('hk.simpos'); S.pos = null;
+    toast('已停止模擬位置，按 📍 可重新開啟真實定位'); render();
+  }
+  // 依目前（含模擬時間）正在進行或剛結束的行程，放到那一站的座標
+  function followSimPos() {
+    const now = getNow(), day = E.dayFor(S.data, now);
+    if (!day) { toast('現在不在旅程日期內，請先設定模擬時間'); return; }
+    const items = E.materialize(eff(day).day, planFor(day)).filter(x => x.lat != null && x.lng != null);
+    let pick = null;
+    items.forEach(x => { if (x.start.getTime() <= now.getTime()) pick = x; });
+    if (!pick) pick = items[0];
+    if (!pick) { toast('這天的行程沒有座標'); return; }
+    setSimPos(pick, md(day.date) + ' ' + E.fmtTime(now) + '・' + shortPlace(pick));
+  }
+  function shortPlace(it) {
+    const t = String(it.w || it.t || '').replace(/（.*$/, '').replace(/，.*$/, '').trim();
+    return t.length > 14 ? t.slice(0, 13) + '…' : t;
+  }
+  function simPosPresets() {
+    const seen = {}, out = [];
+    const add = (lat, lng, label) => {
+      if (lat == null || lng == null) return;
+      const k = Number(lat).toFixed(3) + ',' + Number(lng).toFixed(3); if (seen[k]) return; seen[k] = 1;
+      out.push({ lat: lat, lng: lng, label: label });
+    };
+    S.data.days.forEach(d => d.plans.forEach(p => p.items.forEach(it => {
+      add(it.lat, it.lng, md(d.date) + ' ' + shortPlace(it));
+    })));
+    const st = (S.stations && S.stations.stations) || {};
+    Object.keys(st).forEach(k => add(st[k].lat, st[k].lng, '🚉 ' + st[k].name + '站'));
+    return out;
+  }
+  // 匯出目前手機裡的完整行程資料（行程＋行前清單＋站內導引＋日文站名），給 Claude 改版用
+  function exportData() {
+    const p = load('hk.trip', null);
+    if (!p || !p.itinerary) { toast('這支手機還沒有行程資料'); return; }
+    const out = JSON.parse(JSON.stringify(p));
+    if (out.prep) delete out.prep.sync;
+    const txt = JSON.stringify(out, null, 1), name = 'hokkaido-trip-' + E.jstDate(new Date()) + '.json';
+    const file = root.File ? new root.File([txt], name, { type: 'application/json' }) : null;
+    const nav = root.navigator;
+    if (file && nav.canShare && nav.canShare({ files: [file] })) {
+      nav.share({ files: [file], title: name }).catch(e => { if (e && e.name !== 'AbortError') fallback(); });
+      return;
+    }
+    fallback();
+    function fallback() {
+      try {
+        const url = root.URL.createObjectURL(new root.Blob([txt], { type: 'application/json' }));
+        const a = doc.createElement('a'); a.href = url; a.download = name; doc.body.appendChild(a); a.click(); a.remove();
+        root.setTimeout(() => root.URL.revokeObjectURL(url), 5000);
+        toast('已下載 ' + name);
+      } catch (e) {
+        if (nav.clipboard && nav.clipboard.writeText) nav.clipboard.writeText(txt).then(() => toast('已複製全部資料（貼給 Claude 即可）'), () => toast('匯出失敗：' + e.message));
+        else toast('匯出失敗：' + e.message);
+      }
+    }
+  }
+
   function startGeo() {
+    if (S.simPos) { toast('目前使用模擬位置；要用真實定位，請先按上方「回到真實定位」'); render(); return; }
     if (S.watch != null) { root.navigator.geolocation.clearWatch(S.watch); S.watch = null; S.pos = null; toast('已關閉定位'); render(); return; }
     if (!root.navigator.geolocation) { toast('這個瀏覽器不支援定位'); return; }
     S.watch = root.navigator.geolocation.watchPosition(p => {
+      if (S.simPos) return;
       S.pos = { lat: p.coords.latitude, lng: p.coords.longitude, acc: p.coords.accuracy }; render();
     }, err => { toast('定位失敗：' + err.message); S.watch = null; render(); }, { enableHighAccuracy: false, maximumAge: 30000, timeout: 20000 });
     toast('定位已開啟（只在 App 開著時有效）');
@@ -1064,6 +1149,7 @@
         S.ext = { id: null, ext: 0, leaveNow: false }; save('hk.ext', S.ext); render(); return;
       }
       if ((el = t.closest('[data-sim]'))) { startSim(el.getAttribute('data-sim')); return; }
+      if ((el = t.closest('[data-simpos]'))) { const x = simPosPresets()[+el.getAttribute('data-simpos')]; if (x) setSimPos(x, x.label); return; }
       if ((el = t.closest('[data-act]'))) { act(el); return; }
       if (t.closest('a')) return;
       if ((el = t.closest('.ttl[data-flip="1"]'))) {
@@ -1092,6 +1178,8 @@
     $('set-close').addEventListener('click', closeSettings);
     $('sim-start').addEventListener('click', () => { const v = $('sim-input').value; if (v) startSim(v); else toast('請先選日期時間'); });
     $('sim-stop').addEventListener('click', () => { S.sim = null; drop('hk.sim'); S.tab = null; closeSettings(); render(); });
+    $('simpos-start').addEventListener('click', () => { const p = parseLatLng($('simpos-input').value); if (p) setSimPos(p, '自訂座標'); else toast('座標格式：緯度, 經度（例：43.0687, 141.3507）'); });
+    $('simpos-stop').addEventListener('click', () => { closeSettings(); stopSimPos(); });
     $('import-btn').addEventListener('click', importData);
     $('import-file').addEventListener('change', importFile);
     $('btn-help').addEventListener('click', openHelp);
@@ -1101,6 +1189,9 @@
 
   function boot(data) {
     S.data = data;
+    S.simPos = load('hk.simpos', null);
+    if (S.simPos && !(typeof S.simPos.lat === 'number' && typeof S.simPos.lng === 'number')) S.simPos = null;
+    if (S.simPos) S.pos = { lat: S.simPos.lat, lng: S.simPos.lng, acc: 20, sim: true };
     S.choice = load('hk.plan', {}); S.sim = load('hk.sim', null); S.ext = load('hk.ext', { id: null, ext: 0, leaveNow: false });
     if (S.prep && root.Prep && !S.prepCtl) {
       S.prepCtl = root.Prep.attach({
@@ -1140,7 +1231,7 @@
         doc: doc, getModel: mapModel, allPoints: mapAllPoints, toast: toast,
         navUrl: pt => mapsUrl({ q: pt.q, mode: pt.mode }),
         copy: t => { const ok = () => toast('已複製：' + t); if (root.navigator.clipboard && root.navigator.clipboard.writeText) root.navigator.clipboard.writeText(t).then(ok, () => toast('複製失敗，請手動選取')); else toast('這個瀏覽器不能複製'); },
-        wantGeo: () => { if (S.watch == null) startGeo(); },
+        wantGeo: () => { if (S.simPos) { render(); return; } if (S.watch == null) startGeo(); },
         onOpen: () => { S.mapDay = null; },
         lodging: mapLodging, anchors: mapAnchors, showBig: showBig,
         setDay: d => { S.mapDay = d; if (S.map) S.map.refresh(); }
